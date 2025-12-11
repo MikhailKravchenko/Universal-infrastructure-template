@@ -1,0 +1,40 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: alertmanager
+data:
+  alertmanager.yml: |
+    global:
+      resolve_timeout: 1m
+    route:
+       group_wait: 10s
+       group_interval: 30s
+       repeat_interval: 30m
+       receiver: "telegram"
+       routes:
+         - receiver: "telegram"
+           group_wait: 10s
+           match_re:
+             severity: critical|warning
+           continue: true
+    receivers:
+     - name: "telegram"
+       telegram_configs:
+         - send_resolved: true
+           bot_token: '{{ .Values.telegram.botToken }}'
+           chat_id: {{ .Values.telegram.chatId }}
+           {{- if .Values.telegram.apiUrl }}
+           api_url: '{{ .Values.telegram.apiUrl }}'
+           {{- end }}
+           {{- if .Values.telegram.parseMode }}
+           parse_mode: '{{ .Values.telegram.parseMode }}'
+           {{- end }}
+           message: |-
+             {{ "{{" }}- range .Alerts {{ "}}" }}
+             {{ "{{" }} or .Annotations.summary (printf "%s алерт" .Labels.alertname) {{ "}}" }}
+             {{ "{{" }} or .Annotations.description (printf "Алерт: %s\nКомпонент: %s\nПроект: %s" .Labels.alertname (or .Labels.component "неизвестно") (or .Labels.project "неизвестно")) {{ "}}" }}
+             {{ "{{" }}- end {{ "}}" }}

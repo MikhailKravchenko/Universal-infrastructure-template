@@ -1,0 +1,32 @@
+# Ansible Vault password files
+.vault_pass
+.vault_pass.txt
+vault_pass.txt
+
+# Ansible temporary files
+*.retry
+*.tmp
+
+# Ansible cache
+.ansible/
+
+# SSH keys (если они хранятся локально)
+*.pem
+*.key
+
+# Logs
+*.log
+
+# Environment-specific files
+.env
+.env.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

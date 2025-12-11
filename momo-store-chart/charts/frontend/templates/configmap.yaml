@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-frontend
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: momo-frontend
+    app.kubernetes.io/instance: "{{ .Release.Name }}"
+    app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
+    app.kubernetes.io/managed-by: "{{ .Release.Service }}"
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: momo-store
+    env: "{{ .Values.environment }}"
+data:
+  nginx.conf: |
+    server {
+      listen {{ .Values.configMap.nginx.server.listen }};
+      location / {
+        root   {{ .Values.configMap.nginx.server.location.root }};
+        index  {{ .Values.configMap.nginx.server.location.index }};
+        try_files {{ .Values.configMap.nginx.server.location.tryFiles }};
+      }
+      location /api {
+        proxy_pass http://{{ .Release.Name }}-backend:8081;
+        {{- range .Values.configMap.nginx.server.apiLocation.proxySetHeaders }}
+        proxy_set_header {{ . }};
+        {{- end }}
+      }
+    }

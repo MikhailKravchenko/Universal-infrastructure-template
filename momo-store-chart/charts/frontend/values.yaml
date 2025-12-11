@@ -1,0 +1,52 @@
+# Frontend component values
+image:
+  repository: gitlab.praktikum-services.ru:5050/std-ext-021-21/momo-store/momo-frontend
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+fqdn: kravchenko-mikhail-21.k8s.praktikum-services.tech
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: "http01-clusterissuer"
+  tls:
+    enabled: true
+
+probes:
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 80
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    timeoutSeconds: 1
+    failureThreshold: 6
+
+configMap:
+  nginx:
+    server:
+      listen: 80
+      location:
+        root: "/usr/share/nginx/html"
+        index: "index.html"
+        tryFiles: "$uri $uri/ /index.html"
+      apiLocation:
+        proxyPass: "http://backend:8081"
+        proxySetHeaders:
+          - "Host $host"
+          - "X-Real-IP $remote_addr"
+          - "X-Forwarded-For $proxy_add_x_forwarded_for"
+          - "X-Forwarded-Proto $scheme"
+
+environment: production
+
+imagePullSecrets:
+  - name: docker-config-secret

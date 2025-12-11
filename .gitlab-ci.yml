@@ -1,0 +1,46 @@
+stages:
+  - release
+  - deploy
+
+release-helm:
+  stage: release
+  image: alpine/helm:latest
+  only:
+    changes:
+      - "sausage-store-chart/**/*"
+  script:
+    - cd sausage-store-chart
+    - helm dependency update
+    - helm package .
+    - curl -L -u $HELM_REPO_USERNAME:$HELM_REPO_PASSWORD $NEXUS_HELM_REPO --upload-file sausage-store-*.tgz
+
+deploy-helm:
+  stage: deploy
+  image: alpine/helm:latest
+  only:
+    changes:
+      - "sausage-store-chart/**/*"
+  environment:
+    name: production
+    url: http://std-ext-021-21.praktikum-services.tech
+  when: manual
+  variables:
+    KUBECONFIG: ~/.kube/config
+  script:
+    - mkdir -p ~/.kube
+    - echo "$KUBECONFIG_CONTENT" | base64 -d > ~/.kube/config
+    - chmod 600 ~/.kube/config
+    - export KUBECONFIG=~/.kube/config
+    - echo "=== Helm Repository Information ==="
+    - helm repo add std-ext-021-21-helm $NEXUS_HELM_REPO --username $HELM_REPO_USERNAME --password $HELM_REPO_PASSWORD
+    - helm repo update
+    - |
+      helm upgrade --install sausage-store std-ext-021-21-helm02/sausage-store \
+        --namespace std-ext-021-21 \
+        --atomic \
+        --timeout 15m \
+        --set secrets.vault.token="$VAULT_TOKEN_BASE64" \
+        --set secrets.vault.mongodbUri="$SPRING_DATA_MONGODB_URI_BASE64" \
+        --set secrets.dockerConfig="$DOCKER_CONFIG_JSON_BASE64"
+  after_script:
+    - rm -f ~/.kube/config
