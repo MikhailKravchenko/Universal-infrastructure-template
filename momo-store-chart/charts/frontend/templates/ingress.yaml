@@ -28,8 +28,12 @@ spec:
       secretName: {{ .Release.Name }}-frontend-tls
   {{- end }}
   rules:
-    - host: {{ .Values.fqdn | quote }}
+    - {{- if .Values.fqdn }}
+      host: {{ .Values.fqdn | quote }}
       http:
+    {{- else }}
+      http:
+    {{- end }}
         paths:
           - path: /
             pathType: Prefix

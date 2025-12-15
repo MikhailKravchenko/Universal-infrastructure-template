@@ -30,6 +30,29 @@ resource "yandex_vpc_security_group" "k8s_nodes" {
     v4_cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    description    = "Allow HTTP traffic to ingress-nginx (hostPort 80)"
+    protocol       = "TCP"
+    port           = 80
+    v4_cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description    = "Allow Argo CD traffic to NodePort 32080"
+    protocol       = "TCP"
+    port           = 32080
+    v4_cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description    = "Allow Kubernetes API (kubectl) access from anywhere"
+    protocol       = "TCP"
+    port           = 6443
+    v4_cidr_blocks = ["0.0.0.0/0"]
+    # ВАЖНО: Для безопасности лучше ограничить доступ только с вашего IP:
+    # v4_cidr_blocks = ["<ВАШ_IP>/32"]
+  }
+
   egress {
     description    = "Allow all outbound traffic"
     protocol       = "ANY"
@@ -100,5 +123,54 @@ resource "null_resource" "copy_kubeconfig_to_bastion" {
 
   provisioner "local-exec" {
     command = "scp -o StrictHostKeyChecking=no ${path.module}/ansible/kubeconfig/rke2.yaml ubuntu@${module.bastion.vm_external_ip[0]}:/home/ubuntu/rke2.yaml"
+  }
+}
+
+resource "yandex_lb_target_group" "k8s_nodes" {
+  name      = "k8s-nodes-tg"
+  region_id = "ru-central1"
+
+  dynamic "target" {
+    for_each = toset(module.vm_instance.vm_internal_ip)
+    content {
+      subnet_id = module.network.yandex_vpc_subnets[var.zone]
+      address   = target.value
+    }
+  }
+}
+
+resource "yandex_lb_network_load_balancer" "external_http" {
+  name = "k8s-http-nlb"
+
+  listener {
+    name        = "http"
+    port        = 80
+    target_port = 80
+
+    external_address_spec {
+      ip_version = "ipv4"
+    }
+  }
+
+  listener {
+    name        = "argocd"
+    port        = 8080
+    target_port = 32080
+
+    external_address_spec {
+      ip_version = "ipv4"
+    }
+  }
+
+  attached_target_group {
+    target_group_id = yandex_lb_target_group.k8s_nodes.id
+
+    healthcheck {
+      name = "tcp-32080"
+
+      tcp_options {
+        port = 32080
+      }
+    }
   }
 }

@@ -28,10 +28,6 @@ runcmd:
     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
   - |
     install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-  - |
-    curl -sSL -o argocd "https://github.com/argoproj/argo-cd/releases/download/v2.13.3/argocd-linux-amd64"
-  - |
-    install -o root -g root -m 0755 argocd /usr/local/bin/argocd
 
 timezone: Europe/Moscow
 

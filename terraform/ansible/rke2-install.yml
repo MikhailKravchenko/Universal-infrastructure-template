@@ -154,6 +154,58 @@
       run_once: true
       when: is_primary | bool
 
+    - name: Ensure Argo CD namespace exists
+      ansible.builtin.command: >
+        /var/lib/rancher/rke2/bin/kubectl create namespace argocd
+      register: argocd_ns
+      failed_when: argocd_ns.rc != 0 and 'AlreadyExists' not in argocd_ns.stderr
+      environment:
+        KUBECONFIG: /etc/rancher/rke2/rke2.yaml
+      when: is_primary | bool
+
+    - name: Install Argo CD into cluster
+      ansible.builtin.command: >
+        /var/lib/rancher/rke2/bin/kubectl apply -n argocd
+        -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+      environment:
+        KUBECONFIG: /etc/rancher/rke2/rke2.yaml
+      when: is_primary | bool
+
+    - name: Wait for Argo CD server to be ready
+      ansible.builtin.command: >
+        /var/lib/rancher/rke2/bin/kubectl rollout status deploy/argocd-server -n argocd --timeout=300s
+      environment:
+        KUBECONFIG: /etc/rancher/rke2/rke2.yaml
+      when: is_primary | bool
+
+    - name: Copy ingress-nginx NodePort manifest to primary node
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../kubernetes/ingress-nginx-nodeport.yaml"
+        dest: /tmp/ingress-nginx-nodeport.yaml
+        mode: "0644"
+      when: is_primary | bool
+
+    - name: Expose ingress-nginx via NodePort for Load Balancer
+      ansible.builtin.command: >
+        /var/lib/rancher/rke2/bin/kubectl apply -f /tmp/ingress-nginx-nodeport.yaml
+      environment:
+        KUBECONFIG: /etc/rancher/rke2/rke2.yaml
+      when: is_primary | bool
+
+    - name: Copy Argo CD NodePort manifest to primary node
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../kubernetes/argocd-nodeport.yaml"
+        dest: /tmp/argocd-nodeport.yaml
+        mode: "0644"
+      when: is_primary | bool
+
+    - name: Expose Argo CD via NodePort for Load Balancer
+      ansible.builtin.command: >
+        /var/lib/rancher/rke2/bin/kubectl apply -f /tmp/argocd-nodeport.yaml
+      environment:
+        KUBECONFIG: /etc/rancher/rke2/rke2.yaml
+      when: is_primary | bool
+
   handlers:
     - name: Reboot if required
       ansible.builtin.reboot:

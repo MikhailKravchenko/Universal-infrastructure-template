@@ -6,7 +6,7 @@ image:
 
 replicaCount: 1
 
-fqdn: kravchenko-mikhail-21.k8s.praktikum-services.tech
+fqdn: ""
 
 service:
   type: ClusterIP
@@ -15,10 +15,9 @@ service:
 ingress:
   enabled: true
   className: nginx
-  annotations:
-    cert-manager.io/cluster-issuer: "http01-clusterissuer"
+  annotations: {}
   tls:
-    enabled: true
+    enabled: false
 
 probes:
   livenessProbe:
