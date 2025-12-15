@@ -7,22 +7,22 @@ release-helm:
   image: alpine/helm:latest
   only:
     changes:
-      - "sausage-store-chart/**/*"
+      - "momo-store-chart/**/*"
   script:
-    - cd sausage-store-chart
+    - cd momo-store-chart
     - helm dependency update
     - helm package .
-    - curl -L -u $HELM_REPO_USERNAME:$HELM_REPO_PASSWORD $NEXUS_HELM_REPO --upload-file sausage-store-*.tgz
+    - curl -L -u $HELM_REPO_USERNAME:$HELM_REPO_PASSWORD $NEXUS_HELM_REPO --upload-file momo-store-*.tgz
 
 deploy-helm:
   stage: deploy
   image: alpine/helm:latest
   only:
     changes:
-      - "sausage-store-chart/**/*"
+      - "momo-store-chart/**/*"
   environment:
     name: production
-    url: http://std-ext-021-21.praktikum-services.tech
+
   when: manual
   variables:
     KUBECONFIG: ~/.kube/config
@@ -35,7 +35,7 @@ deploy-helm:
     - helm repo add std-ext-021-21-helm $NEXUS_HELM_REPO --username $HELM_REPO_USERNAME --password $HELM_REPO_PASSWORD
     - helm repo update
     - |
-      helm upgrade --install sausage-store std-ext-021-21-helm02/sausage-store \
+      helm upgrade --install momo-store std-ext-021-21-helm-momo/momo-store \
         --namespace std-ext-021-21 \
         --atomic \
         --timeout 15m \
