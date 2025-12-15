@@ -11,7 +11,7 @@ release-helm:
   script:
     - cd momo-store-chart
     - helm dependency update
-    - helm package .
+    - helm package . --version "0.1.3-pipeline${CI_PIPELINE_ID}"
     - curl -L -u $HELM_REPO_USERNAME:$HELM_REPO_PASSWORD $NEXUS_HELM_REPO --upload-file momo-store-*.tgz
 
 deploy-helm:
