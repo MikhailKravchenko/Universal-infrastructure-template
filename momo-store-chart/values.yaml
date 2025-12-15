@@ -87,4 +87,3 @@ frontend:
 # Image pull secrets
 imagePullSecrets:
   - name: docker-config-secret
-
