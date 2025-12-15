@@ -21,6 +21,9 @@ vault_pass.txt
 .env
 .env.local
 
+# Local Helm values (may contain secrets)
+helm-values.yaml
+
 # IDE files
 .vscode/
 .idea/

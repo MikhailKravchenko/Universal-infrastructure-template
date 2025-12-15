@@ -44,7 +44,7 @@ frontend:
 
   replicaCount: 1
 
-  fqdn: kravchenko-mikhail-21.k8s.praktikum-services.tech
+  fqdn: ""
 
   service:
     type: ClusterIP

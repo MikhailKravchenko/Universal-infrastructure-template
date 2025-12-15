@@ -36,11 +36,8 @@ deploy-helm:
     - helm repo update
     - |
       helm upgrade --install momo-store std-ext-021-21-helm-momo/momo-store \
-        --namespace std-ext-021-21 \
+        --namespace default \
         --atomic \
-        --timeout 15m \
-        --set secrets.vault.token="$VAULT_TOKEN_BASE64" \
-        --set secrets.vault.mongodbUri="$SPRING_DATA_MONGODB_URI_BASE64" \
-        --set secrets.dockerConfig="$DOCKER_CONFIG_JSON_BASE64"
+        --timeout 15m
   after_script:
     - rm -f ~/.kube/config
