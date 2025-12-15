@@ -20,6 +20,16 @@ output "vm_status" {
   value = module.vm_instance.vm_status
 }
 
+output "bastion_external_ip" {
+  description = "External IP of bastion host for kubectl access"
+  value       = module.bastion.vm_external_ip[0]
+}
+
+output "bastion_internal_ip" {
+  description = "Internal IP of bastion host"
+  value       = module.bastion.vm_internal_ip[0]
+}
+
 
 output "vpc_network_id" {
   value = module.network.vpc_network_id

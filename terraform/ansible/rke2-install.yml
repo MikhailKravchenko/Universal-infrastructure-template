@@ -1,0 +1,114 @@
+---
+- name: Install RKE2 on cluster nodes
+  hosts: rke2
+  become: true
+  vars:
+    rke2_channel: stable
+  pre_tasks:
+    - name: Ensure required packages are installed
+      ansible.builtin.package:
+        name:
+          - curl
+          - ca-certificates
+        state: present
+
+    - name: Disable swap (Kubernetes requirement)
+      ansible.builtin.command: swapoff -a
+      when: ansible_swaptotal_mb | default(0) | int > 0
+      changed_when: false
+
+    - name: Remove swap from fstab
+      ansible.builtin.replace:
+        path: /etc/fstab
+        regexp: '^(.*\sswap\s+sw\s+.*)$'
+        replace: '# \1'
+      notify: Reboot if required
+
+  tasks:
+    - name: Set primary node fact
+      ansible.builtin.set_fact:
+        is_primary: "{{ inventory_hostname == (groups['rke2'] | sort | first) }}"
+
+    - name: Install RKE2 server on primary node
+      ansible.builtin.shell: |
+        curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE=server RKE2_CHANNEL={{ rke2_channel }} RKE2_TOKEN={{ rke2_token }} sh -
+        systemctl enable rke2-server || true
+        systemctl start rke2-server || true
+      args:
+        creates: /usr/local/bin/rke2
+      when: is_primary | bool
+
+    - name: Wait for RKE2 server to be ready on primary
+      ansible.builtin.shell: |
+        /var/lib/rancher/rke2/bin/kubectl get nodes
+      environment:
+        KUBECONFIG: /etc/rancher/rke2/rke2.yaml
+      register: rke2_kubectl_check
+      retries: 20
+      delay: 15
+      until: rke2_kubectl_check.rc == 0
+      when: is_primary | bool
+
+    - name: Read RKE2 node token from primary
+      ansible.builtin.slurp:
+        src: /var/lib/rancher/rke2/server/node-token
+      register: rke2_node_token_raw
+      when: is_primary | bool
+
+    - name: Set RKE2 join token fact
+      ansible.builtin.set_fact:
+        rke2_join_token: "{{ rke2_node_token_raw.content | b64decode | trim }}"
+      when: is_primary | bool
+
+    - name: Ensure RKE2 agent config directory exists on secondary nodes
+      ansible.builtin.file:
+        path: /etc/rancher/rke2
+        state: directory
+        mode: "0755"
+      when: not (is_primary | bool)
+
+    - name: Configure RKE2 agent on secondary nodes
+      ansible.builtin.copy:
+        dest: /etc/rancher/rke2/config.yaml
+        mode: "0600"
+        content: |
+          server: https://{{ hostvars[groups['rke2'] | sort | first].ansible_default_ipv4.address }}:9345
+          token: {{ hostvars[groups['rke2'] | sort | first].rke2_join_token }}
+      when: not (is_primary | bool)
+
+    - name: Install RKE2 agent on secondary nodes
+      ansible.builtin.shell: |
+        curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE=agent RKE2_CHANNEL={{ rke2_channel }} sh -
+        systemctl enable rke2-agent
+        systemctl start rke2-agent
+      args:
+        creates: /usr/local/bin/rke2-agent
+      when: not (is_primary | bool)
+    - name: Read RKE2 kubeconfig from primary node
+      ansible.builtin.slurp:
+        src: /etc/rancher/rke2/rke2.yaml
+      register: rke2_kubeconfig_raw
+      when: is_primary | bool
+
+    - name: Prepare RKE2 kubeconfig content with internal IP
+      ansible.builtin.set_fact:
+        rke2_kubeconfig_content: >-
+          {{ rke2_kubeconfig_raw.content
+             | b64decode
+             | regex_replace('server:\\s+https://127\\.0\\.0\\.1:6443',
+                             'server: https://' ~ ansible_default_ipv4.address ~ ':6443') }}
+      when: is_primary | bool
+
+    - name: Write local kubeconfig for bastion use
+      ansible.builtin.copy:
+        dest: "{{ playbook_dir }}/kubeconfig/rke2.yaml"
+        content: "{{ hostvars[groups['rke2'] | sort | first].rke2_kubeconfig_content }}"
+        mode: "0600"
+      delegate_to: localhost
+      become: false
+      run_once: true
+  handlers:
+    - name: Reboot if required
+      ansible.builtin.reboot:
+        msg: "Rebooting to apply swap changes"
+        reboot_timeout: 600

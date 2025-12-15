@@ -1,6 +1,5 @@
 #cloud-config
-# Cloud-init скрипт для инициализации виртуальной машины momo-store в Yandex Cloud
-# Настраивает SSH, базовое ПО и подготовку системы для веб-приложения momo-store
+# Cloud-init для bastion-хоста: SSH + kubectl
 
 users:
   - name: ubuntu
@@ -10,43 +9,41 @@ users:
     ssh_authorized_keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCTMwbmoXb3AuRGAgmlZhn3O7nV7mHhb7P7bXn7uhUUnmjBAtfufaWV/7wOA2Mt4TvbskmyyV6bIzm/0rjFOXErhZDABOriGuF8+BPq9QCb1vTRRRbRTotYPCu8JPd7akPkoT5RHxAbTXGVXi1ji1+eVVQBqTbZSl1JTR8DvCUg8OF87oYwQRz99f6e4XTBGrKxAq0m7p0+zzC/it6mecBJALKVeuGDCKMhLYQwn2cXAPK0wUg3Nu5q5YEPvSM4SJu6fNIy95DkWsACSPWcZu5fIDs5aNNH8jYNVhEmlvSmREkk+Jo4Y9Bc+LNNqPwbB5IzxmwKjx7Xk0tlUUA486ub mikhail@mikhail-Lenovo-ideapad-330-15IGM
 
-# Обновление системы
 package_update: true
 package_upgrade: true
 
-# Установка базовых пакетов
 packages:
   - curl
   - wget
   - git
-  - ufw
-  - apt-transport-https
   - ca-certificates
-  - gnupg
-  - lsb-release
-  - software-properties-common
   - htop
   - net-tools
 
-# Настройка SSH
 ssh_pwauth: false
 disable_root: true
 
-# Настройка времени
+runcmd:
+  - |
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+  - |
+    install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+  - |
+    curl -sSL -o argocd "https://github.com/argoproj/argo-cd/releases/download/v2.13.3/argocd-linux-amd64"
+  - |
+    install -o root -g root -m 0755 argocd /usr/local/bin/argocd
+
 timezone: Europe/Moscow
 
-# Запись логов cloud-init
 write_files:
   - path: /var/log/cloud-init-output.log
     permissions: '0644'
     owner: root:root
     content: |
       Cloud-init initialization completed
-      System ready for momo-store application deployment
+      Bastion host is ready for kubectl access
 
-# Финальное сообщение
 final_message: |
-  Cloud-init завершил инициализацию инициализацию системы.
-  Система готова к развертыванию приложений.
+  Bastion-host готов. Можно использовать kubectl.
   Время инициализации: $UPTIME секунд
 

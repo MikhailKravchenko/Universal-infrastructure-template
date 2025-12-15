@@ -40,3 +40,16 @@ variable "platform_id" {
   nullable  = false
 }
 
+variable "ssh_user" {
+  type        = string
+  description = "SSH user for Ansible"
+  default     = "ubuntu"
+}
+
+variable "rke2_token" {
+  type        = string
+  description = "Shared token for RKE2 cluster (server/agents)"
+  sensitive   = true
+  nullable    = false
+}
+
