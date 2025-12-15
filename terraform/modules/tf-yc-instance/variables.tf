@@ -19,7 +19,7 @@ variable "cores" {
 variable "memory" {
   description = "Memory in GB"
   type        = number
-  default     = 2
+  default     = 4
 }
 
 variable "image_id" {
@@ -72,4 +72,10 @@ variable "preemptible" {
 variable "user_data" {
   description = "User data"
   type        = string
+}
+
+variable "security_group_ids" {
+  description = "List of security group IDs to attach to network interface"
+  type        = list(string)
+  default     = []
 }
