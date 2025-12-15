@@ -30,3 +30,15 @@ vault_pass.txt
 # OS files
 .DS_Store
 Thumbs.db
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+terraform.tfvars
+terraform.tfvars.json
+.terraform.lock.hcl
+terraform/ansible/inventory.ini
+terraform/ansible/kubeconfig/rke2.yaml
