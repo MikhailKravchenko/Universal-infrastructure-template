@@ -2,8 +2,9 @@ data "yandex_vpc_subnet" "default" {
   subnet_id = var.subnet_id
 }
 
-resource "yandex_compute_instance" "vm-1" {
-  name        = var.vm_name
+resource "yandex_compute_instance" "vm" {
+  count       = var.instance_count
+  name        = "${var.vm_name}-${count.index + 1}"
   platform_id = var.platform_id
   zone        = var.zone
 

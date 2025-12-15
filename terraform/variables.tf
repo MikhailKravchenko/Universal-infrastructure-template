@@ -28,13 +28,6 @@ variable "image_id" {
   sensitive   = true
   nullable    = false
 }
-
-variable "subnet_id" {
-  type        = string
-  description = "Subnet ID"
-  sensitive   = true
-  nullable    = false
-}
 variable "platform_id" {
   type        = string
   default     = "standard-v1"

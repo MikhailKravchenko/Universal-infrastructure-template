@@ -4,6 +4,12 @@ variable "vm_name" {
   default     = "momo-store"
 }
 
+variable "instance_count" {
+  description = "Number of instances to create"
+  type        = number
+  default     = 3
+}
+
 variable "cores" {
   description = "CPU cores"
   type        = number
