@@ -20,3 +20,4 @@ data:
         access: proxy
         url: http://loki:3100
         editable: true
+

@@ -4,7 +4,12 @@ kind: Service
 metadata:
   name: frontend
   labels:
-    app: frontend
+    app.kubernetes.io/name: momo-frontend
+    app.kubernetes.io/instance: momo-store
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: momo-store
+    env: "production"
 spec:
   type: ClusterIP
   ports:
@@ -12,4 +17,5 @@ spec:
       protocol: TCP
       targetPort: 80
   selector:
-    app: frontend
+    app.kubernetes.io/name: momo-frontend
+    app.kubernetes.io/instance: momo-store

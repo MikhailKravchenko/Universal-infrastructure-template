@@ -4,7 +4,12 @@ kind: Deployment
 metadata:
   name: frontend
   labels:
-    app: frontend
+    app.kubernetes.io/name: momo-frontend
+    app.kubernetes.io/instance: momo-store
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: momo-store
+    env: "production"
 spec:
   replicas: 1
   revisionHistoryLimit: 12
@@ -12,15 +17,21 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      app: frontend
+      app.kubernetes.io/name: momo-frontend
+      app.kubernetes.io/instance: momo-store
   template:
     metadata:
       labels:
-        app: frontend
+        app.kubernetes.io/name: momo-frontend
+        app.kubernetes.io/instance: momo-store
+        app.kubernetes.io/version: "latest"
+        app.kubernetes.io/component: frontend
+        app.kubernetes.io/part-of: momo-store
+        env: "production"
     spec:
       containers:
         - name: frontend
-          image: gitlab.praktikum-services.ru:5050/std-ext-021-21/momo-store/momo-frontend:1.0.2559722
+          image: gitlab.praktikum-services.ru:5050/std-ext-021-21/momo-store/momo-frontend:latest
           imagePullPolicy: IfNotPresent
           command: ["/usr/sbin/nginx"]
           args: ["-g", "daemon off;"]

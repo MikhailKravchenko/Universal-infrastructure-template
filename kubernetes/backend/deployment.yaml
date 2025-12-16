@@ -4,7 +4,12 @@ kind: Deployment
 metadata:
   name: backend
   labels:
-    app: backend
+    app.kubernetes.io/name: momo-backend
+    app.kubernetes.io/instance: momo-store
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: momo-store
+    env: "production"
 spec:
   replicas: 1
   revisionHistoryLimit: 12
@@ -15,19 +20,36 @@ spec:
       maxUnavailable: 0
   selector:
     matchLabels:
-      app: backend
+      app.kubernetes.io/name: momo-backend
+      app.kubernetes.io/instance: momo-store
   template:
     metadata:
       labels:
-        app: backend
+        app.kubernetes.io/name: momo-backend
+        app.kubernetes.io/instance: momo-store
+        app.kubernetes.io/version: "latest"
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/part-of: momo-store
+        env: "production"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8081"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
         - name: backend
-          image: gitlab.praktikum-services.ru:5050/std-ext-021-21/momo-store/momo-backend:1.0.2559723
+          image: gitlab.praktikum-services.ru:5050/std-ext-021-21/momo-store/momo-backend:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: backend
               containerPort: 8081
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
           livenessProbe:
             httpGet:
               path: /actuator/health

@@ -3,11 +3,18 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: backend
+  labels:
+    app.kubernetes.io/name: momo-backend
+    app.kubernetes.io/instance: momo-store
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: momo-store
+    env: "production"
   annotations:
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: "/$2"
 spec:
-  ingressClassName: "nginx"
+  ingressClassName: nginx
   rules:
     - http:
         paths:
@@ -18,3 +25,4 @@ spec:
                 name: backend
                 port:
                   number: 8081
+

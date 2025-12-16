@@ -13,3 +13,4 @@ data:
   {{ $key | trimPrefix "rules/" }}: {{ $files.Get $key | quote }}
   {{- end }}
   {{- end }}
+

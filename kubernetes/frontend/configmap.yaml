@@ -4,7 +4,12 @@ kind: ConfigMap
 metadata:
   name: frontend
   labels:
-    app: frontend
+    app.kubernetes.io/name: momo-frontend
+    app.kubernetes.io/instance: momo-store
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: momo-store
+    env: "production"
 data:
   nginx.conf: |
     server {
@@ -12,20 +17,20 @@ data:
       server_name _;
       root /usr/share/nginx/html;
       index index.html;
-
-      # gzip для сжатия
+      
+      # gzip сжатие
       gzip on;
       gzip_vary on;
       gzip_min_length 1024;
       gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/json;
-
-      # статика фронта
-      # API запросы идут через ingress на бэк
+      
+      # статические файлы фронтенда
+      # API идет через ingress на бэкенд
       location / {
         try_files $uri $uri/ /index.html;
       }
 
-      # кеш для статики
+      # кеш для ассетов
       location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";

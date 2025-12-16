@@ -70,3 +70,4 @@ spec:
           mountPath: /prometheus
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
+

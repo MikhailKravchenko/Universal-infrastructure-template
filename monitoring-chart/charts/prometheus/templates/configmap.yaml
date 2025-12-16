@@ -184,3 +184,4 @@ data:
           folderId: {{ $yandex.folderId }} 
           service: {{ $yandex.serviceId }} 
     {{ end -}}
+

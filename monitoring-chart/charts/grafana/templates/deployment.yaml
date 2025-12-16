@@ -70,3 +70,4 @@ spec:
         - name: datasource-config
           configMap:
             name: grafana-datasources
+

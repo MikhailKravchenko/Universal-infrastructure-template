@@ -16,3 +16,4 @@ spec:
   selector:
     app: grafana
   sessionAffinity: None
+

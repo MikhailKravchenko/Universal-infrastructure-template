@@ -16,3 +16,4 @@ spec:
   selector:
     app: loki
   sessionAffinity: None
+
