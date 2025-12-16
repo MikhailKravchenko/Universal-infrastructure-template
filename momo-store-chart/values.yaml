@@ -51,8 +51,10 @@ frontend:
     enabled: true
     className: nginx
     annotations: {}
-    path: "/momo-store/"
-    rewriteTarget: "/"
+    useRegex: true
+    path: "/momo-store/(.*)"
+    pathType: "ImplementationSpecific"
+    rewriteTarget: "/$1"
     tls:
       enabled: false
 
