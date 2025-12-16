@@ -5,7 +5,7 @@ environment: production
 backend:
   image:
     repository: gitlab.praktikum-services.ru:5050/std-ext-021-21/momo-store/momo-backend
-    tag: "1.0.2559723"
+    tag: "1.0.2566749"
     pullPolicy: IfNotPresent
 
   replicaCount: 1
