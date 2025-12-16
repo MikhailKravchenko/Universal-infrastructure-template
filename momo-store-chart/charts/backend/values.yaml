@@ -18,6 +18,17 @@ service:
   type: ClusterIP
   port: 8081
 
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  useRegex: true
+  path: "/api(/|$)(.*)"
+  pathType: "ImplementationSpecific"
+  rewriteTarget: "/$2"
+  tls:
+    enabled: false
+
 probes:
   livenessProbe:
     httpGet:
