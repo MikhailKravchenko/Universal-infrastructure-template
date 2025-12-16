@@ -13,10 +13,13 @@ metadata:
     app.kubernetes.io/component: frontend
     app.kubernetes.io/part-of: momo-store
     env: "{{ .Values.environment }}"
-  {{- with .Values.ingress.annotations }}
   annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- if .Values.ingress.annotations }}
+    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+    {{- end }}
+    {{- if .Values.ingress.rewriteTarget }}
+    nginx.ingress.kubernetes.io/rewrite-target: {{ .Values.ingress.rewriteTarget | quote }}
+    {{- end }}
 spec:
   {{- if .Values.ingress.className }}
   ingressClassName: {{ .Values.ingress.className }}
@@ -35,7 +38,7 @@ spec:
       http:
     {{- end }}
         paths:
-          - path: /
+          - path: {{ .Values.ingress.path | default "/momo-store(/|$)(.*)" | quote }}
             pathType: Prefix
             backend:
               service:

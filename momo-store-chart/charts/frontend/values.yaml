@@ -16,6 +16,8 @@ ingress:
   enabled: true
   className: nginx
   annotations: {}
+  path: "/momo-store(/|$)(.*)"
+  rewriteTarget: "/$2"
   tls:
     enabled: false
 

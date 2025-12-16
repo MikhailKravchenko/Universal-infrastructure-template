@@ -26,46 +26,15 @@ data:
       gzip_min_length 1024;
       gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/json;
       
-      # API прокси (должен быть перед основной location)
-      location /api {
-        proxy_pass http://{{ .Release.Name }}-backend:8081;
-        {{- range .Values.configMap.nginx.server.apiLocation.proxySetHeaders }}
-        proxy_set_header {{ . }};
-        {{- end }}
+      # Frontend static files
+      # Все запросы к API проксируются через Ingress напрямую на backend
+      location / {
+        try_files {{ .Values.configMap.nginx.server.location.tryFiles }};
       }
-      
-      # API прокси с префиксом /momo-store/api
-      location /momo-store/api {
-        rewrite ^/momo-store/api(.*)$ /api$1 break;
-        proxy_pass http://{{ .Release.Name }}-backend:8081;
-        {{- range .Values.configMap.nginx.server.apiLocation.proxySetHeaders }}
-        proxy_set_header {{ . }};
-        {{- end }}
-      }
-      
-      # Обработка статических файлов с префиксом /momo-store/ (должен быть перед общим location для статики)
-      location ~* ^/momo-store/(.+\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))$ {
-        root {{ .Values.configMap.nginx.server.location.root }};
-        rewrite ^/momo-store/(.*)$ /$1 break;
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-      }
-      
-      # Cache static assets (должен быть перед основной location)
+
+      # Cache static assets
       location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
-      }
-      
-      # Обработка запросов с префиксом /momo-store/
-      location /momo-store/ {
-        alias {{ .Values.configMap.nginx.server.location.root }}/;
-        index {{ .Values.configMap.nginx.server.location.index }};
-        try_files $uri $uri/ /momo-store/index.html;
-      }
-      
-      # Frontend static files
-      location / {
-        try_files {{ .Values.configMap.nginx.server.location.tryFiles }};
       }
     }
