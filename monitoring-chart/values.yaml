@@ -29,6 +29,11 @@ prometheus:
   
   # Yandex Cloud сервисы (если нужны)
   yandex_cloud_services: []
+  
+  persistence:
+    enabled: true
+    size: 20Gi
+    storageClassName: "local-path"  # StorageClass для RKE2
 
 # Grafana настройки
 grafana:
@@ -107,7 +112,6 @@ loki:
       memory: 1Gi
   
   storage:
-    type: filesystem
-    # Для production можно использовать PVC
-    # type: pvc
-    # size: 20Gi
+    type: pvc
+    size: 20Gi
+    storageClassName: "local-path"  # StorageClass для RKE2

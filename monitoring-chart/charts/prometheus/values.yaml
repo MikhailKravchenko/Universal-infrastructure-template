@@ -22,3 +22,8 @@ scrapeTimeout: 10s
 
 # Yandex Cloud сервисы (если нужны)
 yandex_cloud_services: []
+
+persistence:
+  enabled: true
+  size: 20Gi
+  storageClassName: "local-path"  # StorageClass для RKE2

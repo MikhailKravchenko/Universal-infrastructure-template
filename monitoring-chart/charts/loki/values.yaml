@@ -18,7 +18,6 @@ resources:
     memory: 1Gi
 
 storage:
-  type: filesystem
-  # Для production можно использовать PVC
-  # type: pvc
-  # size: 20Gi
+  type: pvc
+  size: 20Gi
+  storageClassName: "local-path"  # StorageClass для RKE2

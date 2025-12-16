@@ -33,12 +33,21 @@ spec:
       - name: prometheus-rules
         configMap:
           name: prometheus-rules
+      {{- if .Values.persistence.enabled }}
+      - name: prometheus-storage
+        persistentVolumeClaim:
+          claimName: prometheus-pvc
+      {{- else }}
+      - name: prometheus-storage
+        emptyDir: {}
+      {{- end }}
       containers:
       - name: prometheus
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         args:
           - --config.file=/etc/prometheus/prometheus.yml
+          - --storage.tsdb.path=/prometheus
           - --web.enable-lifecycle
           - --log.level=debug
         ports:
@@ -56,5 +65,7 @@ spec:
         - name: config
           mountPath: /etc/prometheus/
           readOnly: true
+        - name: prometheus-storage
+          mountPath: /prometheus
         resources:
           {{- toYaml .Values.resources | nindent 10 }}

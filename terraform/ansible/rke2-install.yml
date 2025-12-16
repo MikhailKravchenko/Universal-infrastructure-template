@@ -187,6 +187,30 @@
         KUBECONFIG: /etc/rancher/rke2/rke2.yaml
       when: is_primary | bool
 
+    - name: Install local-path-provisioner for dynamic storage provisioning
+      ansible.builtin.command: >
+        /var/lib/rancher/rke2/bin/kubectl apply
+        -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.24/deploy/local-path-storage.yaml
+      environment:
+        KUBECONFIG: /etc/rancher/rke2/rke2.yaml
+      when: is_primary | bool
+      register: local_path_install
+      failed_when: local_path_install.rc != 0 and 'AlreadyExists' not in local_path_install.stderr
+
+    - name: Wait for local-path-provisioner to be ready
+      ansible.builtin.command: >
+        /var/lib/rancher/rke2/bin/kubectl rollout status deploy/local-path-provisioner -n local-path-storage --timeout=60s
+      environment:
+        KUBECONFIG: /etc/rancher/rke2/rke2.yaml
+      when: is_primary | bool
+
+    - name: Verify local-path StorageClass exists
+      ansible.builtin.command: >
+        /var/lib/rancher/rke2/bin/kubectl get storageclass local-path
+      environment:
+        KUBECONFIG: /etc/rancher/rke2/rke2.yaml
+      when: is_primary | bool
+
     - name: Copy ingress-nginx NodePort manifest to primary node
       ansible.builtin.copy:
         src: "{{ playbook_dir }}/../../kubernetes/ingress-nginx-nodeport.yaml"
