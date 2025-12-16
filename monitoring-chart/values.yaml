@@ -57,6 +57,7 @@ grafana:
   persistence:
     enabled: true
     size: 10Gi
+    storageClassName: "local-path"  # StorageClass для RKE2
 
 # Alertmanager настройки
 alertmanager:

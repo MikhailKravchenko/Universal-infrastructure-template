@@ -240,37 +240,5 @@ resource "yandex_lb_network_load_balancer" "external_http" {
         port = 32080
       }
     }
-
-    healthcheck {
-      name = "tcp-32090"
-
-      tcp_options {
-        port = 32090
-      }
-    }
-
-    healthcheck {
-      name = "tcp-32300"
-
-      tcp_options {
-        port = 32300
-      }
-    }
-
-    healthcheck {
-      name = "tcp-32093"
-
-      tcp_options {
-        port = 32093
-      }
-    }
-
-    healthcheck {
-      name = "tcp-32310"
-
-      tcp_options {
-        port = 32310
-      }
-    }
   }
 }
