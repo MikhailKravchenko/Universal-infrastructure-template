@@ -15,3 +15,5 @@ dependencies:
     version: 0.17.0
   - name: loki
     version: 0.1.0
+  - name: promtail
+    version: 0.1.0

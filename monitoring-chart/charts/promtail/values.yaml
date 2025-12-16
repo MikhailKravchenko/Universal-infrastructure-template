@@ -1,0 +1,45 @@
+# Promtail настройки
+image:
+  repository: grafana/promtail
+  tag: "2.9.0"
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+# Адрес Loki для отправки логов
+loki:
+  url: "http://loki:3100/loki/api/v1/push"
+
+# Настройки сбора логов
+scrapeConfigs:
+  - job_name: kubernetes-pods
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      # Собираем логи всех pods
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels:
+          - __meta_kubernetes_namespace
+        target_label: namespace
+      - source_labels:
+          - __meta_kubernetes_pod_name
+        target_label: pod
+      - source_labels:
+          - __meta_kubernetes_pod_container_name
+        target_label: container
+      - replacement: /var/log/pods/*$1/*.log
+        separator: /
+        source_labels:
+          - __meta_kubernetes_pod_uid
+          - __meta_kubernetes_pod_container_name
+        target_label: __path__
+      - source_labels:
+          - __meta_kubernetes_pod_node_name
+        target_label: node_name
