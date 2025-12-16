@@ -45,15 +45,6 @@ resource "yandex_vpc_security_group" "k8s_nodes" {
   }
 
   ingress {
-    description    = "Allow Kubernetes API (kubectl) access from anywhere"
-    protocol       = "TCP"
-    port           = 6443
-    v4_cidr_blocks = ["0.0.0.0/0"]
-    # ВАЖНО: Для безопасности лучше ограничить доступ только с вашего IP:
-    # v4_cidr_blocks = ["<ВАШ_IP>/32"]
-  }
-
-  ingress {
     description    = "Allow Prometheus traffic to NodePort 32090"
     protocol       = "TCP"
     port           = 32090
