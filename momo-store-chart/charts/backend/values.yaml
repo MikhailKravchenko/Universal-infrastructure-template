@@ -14,9 +14,6 @@ resources:
     cpu: 500m
     memory: 512Mi
 
-vault:
-  host: std-ext-021-21.praktikum-services.tech:8200
-
 service:
   type: ClusterIP
   port: 8081
