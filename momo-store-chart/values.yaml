@@ -50,10 +50,9 @@ frontend:
   ingress:
     enabled: true
     className: nginx
-    annotations:
-      cert-manager.io/cluster-issuer: "http01-clusterissuer"
+    annotations: {}
     tls:
-      enabled: true
+      enabled: false
 
   probes:
     livenessProbe:

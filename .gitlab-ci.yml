@@ -32,10 +32,10 @@ deploy-helm:
     - chmod 600 ~/.kube/config
     - export KUBECONFIG=~/.kube/config
     - echo "=== Helm Repository Information ==="
-    - helm repo add std-ext-021-21-helm $NEXUS_HELM_REPO --username $HELM_REPO_USERNAME --password $HELM_REPO_PASSWORD
+    - helm repo add -helm $NEXUS_HELM_REPO --username $HELM_REPO_USERNAME --password $HELM_REPO_PASSWORD
     - helm repo update
     - |
-      helm upgrade --install momo-store std-ext-021-21-helm-momo/momo-store \
+      helm upgrade --install momo-store helm-momo/momo-store \
         --namespace default \
         --atomic \
         --timeout 15m
