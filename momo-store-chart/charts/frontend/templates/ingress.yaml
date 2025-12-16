@@ -38,7 +38,7 @@ spec:
       http:
     {{- end }}
         paths:
-          - path: {{ .Values.ingress.path | default "/momo-store(/|$)(.*)" | quote }}
+          - path: {{ .Values.ingress.path | default "/momo-store/" | quote }}
             pathType: Prefix
             backend:
               service:
