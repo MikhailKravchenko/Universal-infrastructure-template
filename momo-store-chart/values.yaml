@@ -1,7 +1,7 @@
-# Global values
+# глобальные значения
 environment: production
 
-# Backend component
+# бэкенд
 backend:
   image:
     repository: gitlab.praktikum-services.ru:5050/std-ext-021-21/momo-store/momo-backend
@@ -43,7 +43,7 @@ backend:
       timeoutSeconds: 1
       failureThreshold: 6
 
-# Frontend component
+# фронтенд
 frontend:
   image:
     repository: gitlab.praktikum-services.ru:5050/std-ext-021-21/momo-store/momo-frontend
@@ -62,10 +62,6 @@ frontend:
     enabled: true
     className: nginx
     annotations: {}
-    # Приложение собрано с base/publicPath = /momo-store/,
-    # поэтому ассеты запрашиваются как /momo-store/js/... .
-    # NGINX внутри пода раздаёт статику из корня (/usr/share/nginx/html),
-    # поэтому делаем rewrite: /momo-store/<path> -> /<path>.
     useRegex: true
     path: "/momo-store(/|$)(.*)"
     pathType: "ImplementationSpecific"
@@ -99,6 +95,6 @@ frontend:
             - "X-Forwarded-For $proxy_add_x_forwarded_for"
             - "X-Forwarded-Proto $scheme"
 
-# Image pull secrets
+# секреты для pull образов
 imagePullSecrets:
   - name: docker-config-secret

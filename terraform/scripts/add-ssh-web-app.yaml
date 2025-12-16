@@ -1,6 +1,4 @@
 #cloud-config
-# Cloud-init скрипт для инициализации виртуальной машины momo-store в Yandex Cloud
-# Настраивает SSH, базовое ПО и подготовку системы для веб-приложения momo-store
 
 users:
   - name: ubuntu
@@ -10,11 +8,11 @@ users:
     ssh_authorized_keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCTMwbmoXb3AuRGAgmlZhn3O7nV7mHhb7P7bXn7uhUUnmjBAtfufaWV/7wOA2Mt4TvbskmyyV6bIzm/0rjFOXErhZDABOriGuF8+BPq9QCb1vTRRRbRTotYPCu8JPd7akPkoT5RHxAbTXGVXi1ji1+eVVQBqTbZSl1JTR8DvCUg8OF87oYwQRz99f6e4XTBGrKxAq0m7p0+zzC/it6mecBJALKVeuGDCKMhLYQwn2cXAPK0wUg3Nu5q5YEPvSM4SJu6fNIy95DkWsACSPWcZu5fIDs5aNNH8jYNVhEmlvSmREkk+Jo4Y9Bc+LNNqPwbB5IzxmwKjx7Xk0tlUUA486ub mikhail@mikhail-Lenovo-ideapad-330-15IGM
 
-# Обновление системы
+# обновляем систему
 package_update: true
 package_upgrade: true
 
-# Установка базовых пакетов
+# устанавливаем нужные пакеты
 packages:
   - curl
   - wget
@@ -28,14 +26,14 @@ packages:
   - htop
   - net-tools
 
-# Настройка SSH
+# настройка ssh
 ssh_pwauth: false
 disable_root: true
 
-# Настройка времени
+# часовой пояс
 timezone: Europe/Moscow
 
-# Запись логов cloud-init
+# логи cloud-init
 write_files:
   - path: /var/log/cloud-init-output.log
     permissions: '0644'
@@ -44,9 +42,9 @@ write_files:
       Cloud-init initialization completed
       System ready for momo-store application deployment
 
-# Финальное сообщение
+# финальное сообщение
 final_message: |
-  Cloud-init завершил инициализацию инициализацию системы.
+  Cloud-init завершил инициализацию системы.
   Система готова к развертыванию приложений.
   Время инициализации: $UPTIME секунд
 

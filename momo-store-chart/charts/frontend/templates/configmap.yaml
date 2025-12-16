@@ -20,19 +20,19 @@ data:
       root {{ .Values.configMap.nginx.server.location.root }};
       index {{ .Values.configMap.nginx.server.location.index }};
       
-      # Gzip compression
+      # gzip сжатие
       gzip on;
       gzip_vary on;
       gzip_min_length 1024;
       gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/json;
       
-      # Frontend static files
-      # Все запросы к API проксируются через Ingress напрямую на backend
+      # статические файлы фронтенда
+      # API идет через ingress на бэкенд
       location / {
         try_files {{ .Values.configMap.nginx.server.location.tryFiles }};
       }
 
-      # Cache static assets
+      # кеш для ассетов
       location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
