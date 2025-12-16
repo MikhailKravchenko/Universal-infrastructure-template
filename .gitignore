@@ -45,3 +45,4 @@ terraform.tfvars.json
 .terraform.lock.hcl
 terraform/ansible/inventory.ini
 terraform/ansible/kubeconfig/rke2.yaml
+terraform/tfplan

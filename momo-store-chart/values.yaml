@@ -36,7 +36,7 @@ backend:
 frontend:
   image:
     repository: gitlab.praktikum-services.ru:5050/std-ext-021-21/momo-store/momo-frontend
-    tag: "1.0.2559722"
+    tag: "1.0.2567383"
     pullPolicy: IfNotPresent
 
   replicaCount: 1
