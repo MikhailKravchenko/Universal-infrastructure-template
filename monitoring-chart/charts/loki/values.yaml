@@ -1,0 +1,24 @@
+# Loki настройки
+image:
+  repository: grafana/loki
+  tag: "2.9.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 3100
+  nodePort: 32310
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+storage:
+  type: filesystem
+  # Для production можно использовать PVC
+  # type: pvc
+  # size: 20Gi

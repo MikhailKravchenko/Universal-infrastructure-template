@@ -1,0 +1,24 @@
+# Prometheus настройки
+image:
+  repository: prom/prometheus
+  tag: latest
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: 1
+    memory: 1Gi
+
+service:
+  type: NodePort
+  port: 9090
+  nodePort: 32090
+
+scrapeInterval: 10s
+scrapeTimeout: 10s
+
+# Yandex Cloud сервисы (если нужны)
+yandex_cloud_services: []

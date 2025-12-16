@@ -1,0 +1,112 @@
+# Глобальные настройки
+global:
+  namespace: monitoring
+
+# Prometheus настройки
+prometheus:
+  enabled: true
+  image:
+    repository: prom/prometheus
+    tag: latest
+    pullPolicy: IfNotPresent
+  
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+  
+  service:
+    type: NodePort
+    port: 9090
+    nodePort: 32090
+  
+  # Настройки сбора метрик
+  scrapeInterval: 10s
+  scrapeTimeout: 10s
+  
+  # Yandex Cloud сервисы (если нужны)
+  yandex_cloud_services: []
+
+# Grafana настройки
+grafana:
+  enabled: true
+  image:
+    repository: grafana/grafana
+    tag: "8.4.4"
+    pullPolicy: IfNotPresent
+  
+  adminUser: admin
+  adminPassword: admin
+  
+  service:
+    type: NodePort
+    port: 3000
+    nodePort: 32300
+  
+  resources:
+    requests:
+      cpu: 250m
+      memory: 750Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  
+  persistence:
+    enabled: true
+    size: 10Gi
+
+# Alertmanager настройки
+alertmanager:
+  enabled: true
+  image:
+    repository: prom/alertmanager
+    tag: latest
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: NodePort
+    port: 9093
+    nodePort: 32093
+  
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  
+  telegram:
+    botToken: ""
+    chatId: ""
+    apiUrl: "https://api.telegram.org"
+
+# Loki настройки
+loki:
+  enabled: true
+  image:
+    repository: grafana/loki
+    tag: "2.9.0"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: NodePort
+    port: 3100
+    nodePort: 32310
+  
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  
+  storage:
+    type: filesystem
+    # Для production можно использовать PVC
+    # type: pvc
+    # size: 20Gi

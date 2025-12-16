@@ -1,0 +1,17 @@
+apiVersion: v2
+type: application
+name: monitoring
+description: Monitoring Stack Helm Chart (Prometheus, Grafana, Alertmanager, Loki)
+
+version: 0.1.0
+appVersion: "latest"
+
+dependencies:
+  - name: prometheus
+    version: 0.0.1
+  - name: grafana
+    version: 0.17.0
+  - name: alertmanager
+    version: 0.17.0
+  - name: loki
+    version: 0.1.0

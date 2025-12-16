@@ -163,6 +163,15 @@
         KUBECONFIG: /etc/rancher/rke2/rke2.yaml
       when: is_primary | bool
 
+    - name: Ensure monitoring namespace exists
+      ansible.builtin.command: >
+        /var/lib/rancher/rke2/bin/kubectl create namespace monitoring
+      register: monitoring_ns
+      failed_when: monitoring_ns.rc != 0 and 'AlreadyExists' not in monitoring_ns.stderr
+      environment:
+        KUBECONFIG: /etc/rancher/rke2/rke2.yaml
+      when: is_primary | bool
+
     - name: Install Argo CD into cluster
       ansible.builtin.command: >
         /var/lib/rancher/rke2/bin/kubectl apply -n argocd

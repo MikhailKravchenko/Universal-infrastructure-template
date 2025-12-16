@@ -53,6 +53,34 @@ resource "yandex_vpc_security_group" "k8s_nodes" {
     # v4_cidr_blocks = ["<ВАШ_IP>/32"]
   }
 
+  ingress {
+    description    = "Allow Prometheus traffic to NodePort 32090"
+    protocol       = "TCP"
+    port           = 32090
+    v4_cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description    = "Allow Grafana traffic to NodePort 32300"
+    protocol       = "TCP"
+    port           = 32300
+    v4_cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description    = "Allow Alertmanager traffic to NodePort 32093"
+    protocol       = "TCP"
+    port           = 32093
+    v4_cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description    = "Allow Loki traffic to NodePort 32310"
+    protocol       = "TCP"
+    port           = 32310
+    v4_cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     description    = "Allow all outbound traffic"
     protocol       = "ANY"
@@ -162,6 +190,46 @@ resource "yandex_lb_network_load_balancer" "external_http" {
     }
   }
 
+  listener {
+    name        = "prometheus"
+    port        = 9090
+    target_port = 32090
+
+    external_address_spec {
+      ip_version = "ipv4"
+    }
+  }
+
+  listener {
+    name        = "grafana"
+    port        = 3000
+    target_port = 32300
+
+    external_address_spec {
+      ip_version = "ipv4"
+    }
+  }
+
+  listener {
+    name        = "alertmanager"
+    port        = 9093
+    target_port = 32093
+
+    external_address_spec {
+      ip_version = "ipv4"
+    }
+  }
+
+  listener {
+    name        = "loki"
+    port        = 3100
+    target_port = 32310
+
+    external_address_spec {
+      ip_version = "ipv4"
+    }
+  }
+
   attached_target_group {
     target_group_id = yandex_lb_target_group.k8s_nodes.id
 
@@ -170,6 +238,38 @@ resource "yandex_lb_network_load_balancer" "external_http" {
 
       tcp_options {
         port = 32080
+      }
+    }
+
+    healthcheck {
+      name = "tcp-32090"
+
+      tcp_options {
+        port = 32090
+      }
+    }
+
+    healthcheck {
+      name = "tcp-32300"
+
+      tcp_options {
+        port = 32300
+      }
+    }
+
+    healthcheck {
+      name = "tcp-32093"
+
+      tcp_options {
+        port = 32093
+      }
+    }
+
+    healthcheck {
+      name = "tcp-32310"
+
+      tcp_options {
+        port = 32310
       }
     }
   }

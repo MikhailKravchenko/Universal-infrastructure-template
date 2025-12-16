@@ -14,6 +14,18 @@ release-helm:
     - helm package . --version "0.1.3-pipeline${CI_PIPELINE_ID}"
     - curl -L -u $HELM_REPO_USERNAME:$HELM_REPO_PASSWORD $NEXUS_HELM_REPO --upload-file momo-store-*.tgz
 
+release-monitoring-helm:
+  stage: release
+  image: alpine/helm:latest
+  only:
+    changes:
+      - "monitoring-chart/**/*"
+  script:
+    - cd monitoring-chart
+    - helm dependency update
+    - helm package . --version "0.1.0-pipeline${CI_PIPELINE_ID}"
+    - curl -L -u $HELM_REPO_USERNAME:$HELM_REPO_PASSWORD $NEXUS_HELM_MONITORING_REPO --upload-file monitoring-*.tgz
+
 deploy-helm:
   stage: deploy
   image: alpine/helm:latest
