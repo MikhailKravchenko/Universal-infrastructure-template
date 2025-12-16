@@ -16,11 +16,26 @@ data:
   nginx.conf: |
     server {
       listen {{ .Values.configMap.nginx.server.listen }};
+      root {{ .Values.configMap.nginx.server.location.root }};
+      index {{ .Values.configMap.nginx.server.location.index }};
+      
+      # Статические файлы (JS, CSS, изображения, шрифты)
+      location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        root {{ .Values.configMap.nginx.server.location.root }};
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off;
+      }
+      
+      # Основная location для SPA
       location / {
         root   {{ .Values.configMap.nginx.server.location.root }};
         index  {{ .Values.configMap.nginx.server.location.index }};
         try_files {{ .Values.configMap.nginx.server.location.tryFiles }};
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
       }
+      
+      # API прокси
       location /api {
         proxy_pass http://{{ .Release.Name }}-backend:8081;
         {{- range .Values.configMap.nginx.server.apiLocation.proxySetHeaders }}

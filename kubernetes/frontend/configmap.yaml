@@ -9,11 +9,26 @@ data:
   nginx.conf: |
     server {
       listen 80;
+      root /usr/share/nginx/html;
+      index index.html;
+      
+      # Статические файлы (JS, CSS, изображения, шрифты)
+      location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        root /usr/share/nginx/html;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off;
+      }
+      
+      # Основная location для SPA
       location / {
         root   /usr/share/nginx/html;
         index  index.html;
         try_files $uri $uri/ /index.html;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
       }
+      
+      # API прокси
       location /api {
         proxy_pass http://backend:8081;
         proxy_set_header Host $host;
