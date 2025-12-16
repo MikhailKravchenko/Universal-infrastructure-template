@@ -17,10 +17,8 @@ metadata:
     {{- if .Values.ingress.annotations }}
     {{- toYaml .Values.ingress.annotations | nindent 4 }}
     {{- end }}
-    {{- if .Values.ingress.useRegex }}
+    {{- if and .Values.ingress.useRegex .Values.ingress.rewriteTarget }}
     nginx.ingress.kubernetes.io/use-regex: "true"
-    {{- end }}
-    {{- if .Values.ingress.rewriteTarget }}
     nginx.ingress.kubernetes.io/rewrite-target: {{ .Values.ingress.rewriteTarget | quote }}
     {{- end }}
 spec:
@@ -41,8 +39,17 @@ spec:
       http:
     {{- end }}
         paths:
-          - path: {{ .Values.ingress.path | default "/momo-store/(.*)" | quote }}
-            pathType: {{ .Values.ingress.pathType | default "ImplementationSpecific" }}
+          {{- if .Values.ingress.path }}
+          - path: {{ .Values.ingress.path | quote }}
+            pathType: {{ .Values.ingress.pathType | default "Prefix" }}
+            backend:
+              service:
+                name: {{ .Release.Name }}-frontend
+                port:
+                  number: {{ .Values.service.port }}
+          {{- end }}
+          - path: /
+            pathType: Prefix
             backend:
               service:
                 name: {{ .Release.Name }}-frontend
