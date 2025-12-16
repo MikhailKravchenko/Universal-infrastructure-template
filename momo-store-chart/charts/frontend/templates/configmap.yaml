@@ -43,26 +43,25 @@ data:
         {{- end }}
       }
       
+      # Обработка статических файлов с префиксом /momo-store/ (должен быть перед общим location для статики)
+      location ~* ^/momo-store/(.+\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))$ {
+        root {{ .Values.configMap.nginx.server.location.root }};
+        rewrite ^/momo-store/(.*)$ /$1 break;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+      }
+      
       # Cache static assets (должен быть перед основной location)
       location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
       }
       
-      # Обработка статических файлов с префиксом /momo-store/
-      location ~* ^/momo-store/.*\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-        rewrite ^/momo-store/(.*)$ /$1 break;
-        root {{ .Values.configMap.nginx.server.location.root }};
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-      }
-      
       # Обработка запросов с префиксом /momo-store/
       location /momo-store/ {
-        rewrite ^/momo-store/(.*)$ /$1 break;
-        root {{ .Values.configMap.nginx.server.location.root }};
+        alias {{ .Values.configMap.nginx.server.location.root }}/;
         index {{ .Values.configMap.nginx.server.location.index }};
-        try_files $uri $uri/ /index.html;
+        try_files $uri $uri/ /momo-store/index.html;
       }
       
       # Frontend static files
