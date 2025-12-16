@@ -16,10 +16,14 @@ ingress:
   enabled: true
   className: nginx
   annotations: {}
-  # useRegex: true
-  # path: "/momo-store/(.*)"
-  # pathType: "ImplementationSpecific"
-  # rewriteTarget: "/$1"
+  # Приложение собрано с base/publicPath = /momo-store/,
+  # поэтому ассеты запрашиваются как /momo-store/js/... .
+  # NGINX внутри пода раздаёт статику из корня (/usr/share/nginx/html),
+  # поэтому делаем rewrite: /momo-store/<path> -> /<path>.
+  useRegex: true
+  path: "/momo-store(/|$)(.*)"
+  pathType: "ImplementationSpecific"
+  rewriteTarget: "/$2"
   tls:
     enabled: false
 
