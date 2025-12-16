@@ -13,12 +13,6 @@ data:
       scrape_timeout: {{ .Values.scrapeTimeout }}
     rule_files:
        - "/config/*"
-    alerting:
-      alertmanagers:
-        - scheme: http
-          static_configs:
-            - targets:
-              - "alertmanager:9093"
     scrape_configs:
     - job_name: kubernetes-pods
       kubernetes_sd_configs:
