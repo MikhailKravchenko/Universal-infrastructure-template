@@ -19,6 +19,4 @@ data:
       - url: {{ .Values.loki.url }}
     
     scrape_configs:
-{{- range .Values.scrapeConfigs }}
-    {{- toYaml . | nindent 4 }}
-{{- end }}
+{{ toYaml .Values.scrapeConfigs | indent 6 }}
