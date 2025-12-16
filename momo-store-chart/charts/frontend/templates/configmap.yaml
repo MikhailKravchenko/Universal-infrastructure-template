@@ -16,8 +16,15 @@ data:
   nginx.conf: |
     server {
       listen {{ .Values.configMap.nginx.server.listen }};
+      server_name _;
       root {{ .Values.configMap.nginx.server.location.root }};
       index {{ .Values.configMap.nginx.server.location.index }};
+      
+      # Gzip compression
+      gzip on;
+      gzip_vary on;
+      gzip_min_length 1024;
+      gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/json;
       
       # API прокси (должен быть перед основной location)
       location /api {
@@ -27,10 +34,39 @@ data:
         {{- end }}
       }
       
-      # Основная location для SPA (обрабатывает все, включая статические файлы)
+      # API прокси с префиксом /momo-store/api
+      location /momo-store/api {
+        rewrite ^/momo-store/api(.*)$ /api$1 break;
+        proxy_pass http://{{ .Release.Name }}-backend:8081;
+        {{- range .Values.configMap.nginx.server.apiLocation.proxySetHeaders }}
+        proxy_set_header {{ . }};
+        {{- end }}
+      }
+      
+      # Cache static assets (должен быть перед основной location)
+      location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+      }
+      
+      # Обработка статических файлов с префиксом /momo-store/
+      location ~* ^/momo-store/.*\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        rewrite ^/momo-store/(.*)$ /$1 break;
+        root {{ .Values.configMap.nginx.server.location.root }};
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+      }
+      
+      # Обработка запросов с префиксом /momo-store/
+      location /momo-store/ {
+        rewrite ^/momo-store/(.*)$ /$1 break;
+        root {{ .Values.configMap.nginx.server.location.root }};
+        index {{ .Values.configMap.nginx.server.location.index }};
+        try_files $uri $uri/ /index.html;
+      }
+      
+      # Frontend static files
       location / {
-        root   {{ .Values.configMap.nginx.server.location.root }};
-        index  {{ .Values.configMap.nginx.server.location.index }};
         try_files {{ .Values.configMap.nginx.server.location.tryFiles }};
       }
     }
