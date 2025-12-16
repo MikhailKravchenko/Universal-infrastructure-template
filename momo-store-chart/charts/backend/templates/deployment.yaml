@@ -35,6 +35,10 @@ spec:
         app.kubernetes.io/component: backend
         app.kubernetes.io/part-of: momo-store
         env: "{{ .Values.environment }}"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.service.port }}"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
         - name: backend
