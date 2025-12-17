@@ -213,7 +213,7 @@
 
     - name: Copy ingress-nginx NodePort manifest to primary node
       ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../../kubernetes/ingress-nginx-nodeport.yaml"
+        src: "{{ playbook_dir }}/manifests/ingress-nginx-nodeport.yaml"
         dest: /tmp/ingress-nginx-nodeport.yaml
         mode: "0644"
       when: is_primary | bool
@@ -227,7 +227,7 @@
 
     - name: Copy Argo CD NodePort manifest to primary node
       ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../../kubernetes/argocd-nodeport.yaml"
+        src: "{{ playbook_dir }}/manifests/argocd-nodeport.yaml"
         dest: /tmp/argocd-nodeport.yaml
         mode: "0644"
       when: is_primary | bool
