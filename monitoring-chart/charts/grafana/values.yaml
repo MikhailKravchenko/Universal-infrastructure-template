@@ -26,3 +26,5 @@ persistence:
   storageClassName: "local-path"  # StorageClass для RKE2
 
 
+
+
