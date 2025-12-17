@@ -1,6 +1,6 @@
 apiVersion: v2
 name: backend
-description: Sausage Store Backend Component
+description: Momo Store Backend Component
 type: application
 version: 0.1.2
 appVersion: "latest"
