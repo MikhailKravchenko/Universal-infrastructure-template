@@ -59,3 +59,4 @@ data:
       working_directory: /loki/boltdb-shipper-compactor
       shared_store: filesystem
 
+

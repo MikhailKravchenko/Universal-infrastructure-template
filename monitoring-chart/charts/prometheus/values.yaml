@@ -28,3 +28,4 @@ persistence:
   size: 20Gi
   storageClassName: "local-path"  # StorageClass для RKE2
 
+

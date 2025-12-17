@@ -55,5 +55,9 @@ spec:
           livenessProbe:
             {{- toYaml .Values.probes.livenessProbe | nindent 12 }}
           {{- end }}
+          {{- if .Values.probes.readinessProbe }}
+          readinessProbe:
+            {{- toYaml .Values.probes.readinessProbe | nindent 12 }}
+          {{- end }}
       imagePullSecrets:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}

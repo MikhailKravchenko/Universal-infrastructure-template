@@ -52,12 +52,22 @@ spec:
               memory: 512Mi
           livenessProbe:
             httpGet:
-              path: /actuator/health
+              path: /metrics
               port: 8081
-            initialDelaySeconds: 15
+            initialDelaySeconds: 30
             periodSeconds: 30
-            timeoutSeconds: 1
-            failureThreshold: 6
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
       imagePullSecrets:
         - name: docker-config-secret
 
