@@ -6,6 +6,15 @@ image:
 
 replicaCount: 1
 
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+pdb:
+  enabled: false
+  minAvailable: 1
+
 fqdn: ""
 
 service:

@@ -13,6 +13,12 @@ data:
       scrape_timeout: {{ .Values.scrapeTimeout }}
     rule_files:
        - "/config/*"
+    {{- if .Values.alertmanagerUrl }}
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets: [{{ .Values.alertmanagerUrl | quote }}]
+    {{- end }}
     scrape_configs:
     # Kubernetes API Server
     - job_name: kubernetes-apiservers

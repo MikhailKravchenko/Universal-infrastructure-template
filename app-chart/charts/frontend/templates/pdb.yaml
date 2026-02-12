@@ -1,0 +1,16 @@
+{{- if and .Values.pdb.enabled (gt (int .Values.replicaCount) 1) }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}-frontend
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: app-frontend
+    app.kubernetes.io/instance: "{{ .Release.Name }}"
+spec:
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: app-frontend
+      app.kubernetes.io/instance: "{{ .Release.Name }}"
+{{- end }}

@@ -18,6 +18,7 @@
 - [Подключение backend к БД и очередям](#подключение-backend-к-бд-и-очередям)
 - [GitOps и управление деплоем](#gitops-и-управление-деплоем)
 - [Сводка эндпоинтов](#сводка-эндпоинтов)
+- [Makefile](#makefile)
 - [Kubernetes ресурсы](#kubernetes-ресурсы-namespaceы)
 - [Устранение неполадок](#устранение-неполадок)
 - [Дополнительная документация](#дополнительная-документация)
@@ -42,7 +43,7 @@
 - **ArgoCD**: установка при развертывании инфраструктуры; используется для GitOps-деплоя приложения, мониторинга и при необходимости — сервисов данных и конфигурации External Secrets.
 - **Helm-чарты** (публикуются в Nexus через GitLab CI):
   - **app** — приложение (frontend + backend) с параметризацией по окружениям;
-  - **monitoring** — Prometheus, Grafana, Loki, Promtail;
+  - **monitoring** — Prometheus, Grafana, Loki, Promtail, Alertmanager;
   - **data-services** — umbrella-чарт Bitnami: PostgreSQL, Redis, RabbitMQ, Kafka;
   - **external-secrets-config** — ClusterSecretStore и ExternalSecret для синхронизации секретов из Lockbox в namespace кластера.
 - **Секреты**: пароли и ключи не хранятся в Git; при использовании Lockbox и External Secrets Operator секреты создаются в целевых namespace автоматически. Для pull образов из приватного registry в каждом namespace создаётся секрет `docker-config-secret`.
@@ -58,7 +59,7 @@
 
 2. **Kubernetes (один кластер)**  
    - **Окружения**: namespace'ы `dev`, `staging`, `production` — в каждом могут быть развёрнуты приложение (app) и сервисы данных (data-services).  
-   - **Мониторинг**: namespace `monitoring` — Prometheus, Grafana, Loki, Promtail.  
+   - **Мониторинг**: namespace `monitoring` — Prometheus, Grafana, Loki, Promtail, Alertmanager.  
    - **Секреты**: при использовании ESO — оператор в namespace `external-secrets`, конфигурация (SecretStore + ExternalSecret) синхронизирует секреты из Lockbox в `dev`, `staging`, `production`.  
    - **Трафик**: ingress-nginx; приложение доступно через NLB по путям `/app` и `/api`.
 
@@ -74,6 +75,7 @@ momo-infrastructure/
 │   ├── lockbox.tf             # Секрет Lockbox (опционально)
 │   ├── storage.tf             # S3-бакет и ключи (опционально)
 │   ├── variables.tf           # Переменные Terraform
+│   ├── terraform.tfvars.example # Пример переменных (скопировать в terraform.tfvars)
 │   ├── outputs.tf             # Выходные значения (IP, bucket, lockbox_secret_id)
 │   ├── provider.tf            # Провайдер Yandex.Cloud
 │   ├── versions.tf            # Ограничения версий
@@ -100,7 +102,7 @@ momo-infrastructure/
 │   ├── values-dev.yaml
 │   ├── values-staging.yaml
 │   └── values-production.yaml
-├── monitoring-chart/          # Prometheus, Grafana, Loki, Promtail
+├── monitoring-chart/          # Prometheus, Grafana, Loki, Promtail, Alertmanager
 │   ├── Chart.yaml
 │   ├── values.yaml
 │   └── charts/
@@ -116,7 +118,9 @@ momo-infrastructure/
 ├── docs/
 │   ├── multi-env.md          # Мульти-окружения, values, ArgoCD
 │   ├── secrets.md            # Lockbox, ESO, добавление ключей
-│   └── backup.md             # Стратегия бэкапов, восстановление
+│   ├── backup.md             # Стратегия бэкапов, восстановление
+│   └── runbook.md            # Runbook: инциденты (ImagePullBackOff, БД, ESO, ArgoCD)
+├── Makefile                  # Типовые команды (terraform, helm lint, kubectl)
 ├── .gitlab-ci.yml            # Публикация чартов в Nexus
 └── README.md
 ```
@@ -131,7 +135,7 @@ momo-infrastructure/
 | **ingress-nginx** | Входная точка HTTP/HTTPS; маршрутизация по путям (/app, /api). |
 | **app-chart** | Деплой frontend и backend с настраиваемыми образами, репликами, ingress и переменными для БД/очередей/S3. |
 | **data-services-chart** | Деплой PostgreSQL, Redis, RabbitMQ, Kafka в выбранном namespace с разными ресурсами по окружениям. |
-| **monitoring-chart** | Стек метрик и логов: Prometheus, Grafana, Loki, Promtail. |
+| **monitoring-chart** | Стек метрик и логов: Prometheus, Grafana, Loki, Promtail, Alertmanager. |
 | **external-secrets-chart** | Описание ClusterSecretStore (доступ к Lockbox) и ExternalSecret (синхронизация секрета в несколько namespace). |
 | **Lockbox** | Хранение паролей и ключей (БД, RabbitMQ, Redis, S3); в кластер попадают через ESO. |
 
@@ -179,7 +183,7 @@ tr -dc 'a-f0-9' < /dev/urandom | head -c 64
 
 **Важно**: Сохраните этот токен в безопасном месте, он понадобится при добавлении новых узлов в кластер.
 
-Создайте файл `terraform/terraform.tfvars` с необходимыми значениями :
+Скопируйте `terraform/terraform.tfvars.example` в `terraform/terraform.tfvars` и заполните значения. Либо создайте файл `terraform/terraform.tfvars` вручную с необходимыми переменными:
 
 ```hcl
 cloud_id = "your-cloud-id"
@@ -299,7 +303,7 @@ kubectl get secret docker-config-secret -n default
 
 ### Шаг 4: Публикация Helm чартов в Nexus
 
-Helm чарты автоматически публикуются в Nexus репозиторий через GitLab CI/CD при изменении файлов в соответствующих директориях.
+Helm чарты автоматически публикуются в Nexus репозиторий через GitLab CI/CD при изменении файлов в соответствующих директориях. Перед публикацией pipeline выполняет стадию **validate**: для всех чартов запускаются `helm dependency update`, `helm lint` и `helm template` (проверка рендера манифестов).
 
 #### 4.1 Структура чартов
 
@@ -308,16 +312,16 @@ Helm чарты автоматически публикуются в Nexus ре�
 | Директория | Чарт | Содержимое |
 |------------|------|-------------|
 | `app-chart/` | app | Frontend и backend приложения; параметры по окружениям (values-dev/staging/production). |
-| `monitoring-chart/` | monitoring | Prometheus, Grafana, Loki, Promtail. |
+| `monitoring-chart/` | monitoring | Prometheus, Grafana, Loki, Promtail, Alertmanager. |
 | `data-services-chart/` | data-services | PostgreSQL, Redis, RabbitMQ, Kafka (Bitnami); зависимости подтягиваются из репозитория Bitnami. |
 | `external-secrets-chart/` | external-secrets-config | ClusterSecretStore и ExternalSecret для синхронизации секретов из Yandex Lockbox в namespace кластера. |
 
 #### 4.2 Автоматическая публикация через GitLab CI
 
-При коммите изменений в директорию `app-chart/**/*` автоматически запускается job `release-helm`, который:
+При коммите изменений в директории чартов (`app-chart/**`, `monitoring-chart/**` и т.д.) сначала выполняется стадия **validate** (job `lint-helm`): проверка всех чартов через `helm lint` и `helm template`. Затем при успешной проверке запускается job публикации (например `release-helm` для app-chart), который:
 
 1. Обновляет зависимости чарта (`helm dependency update`)
-2. Упаковывает чарт (`helm package`) - создает .tgz файл
+2. Упаковывает чарт (`helm package`) — создаёт .tgz файл
 3. Публикует его в Nexus репозиторий (`curl --upload-file`)
 
 **Команды выполняются автоматически при коммите в GitLab:**
@@ -450,6 +454,8 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 
 ### Основные сервисы приложения
 
+Для production в [app-chart/values-production.yaml](app-chart/values-production.yaml) включены **HPA** (HorizontalPodAutoscaler) и **PDB** (PodDisruptionBudget) для backend и frontend: масштабирование по CPU и защита от одновременного простоя нескольких реплик при обновлениях узлов. Настройка в values: `backend.hpa`, `backend.pdb`, `frontend.hpa`, `frontend.pdb`.
+
 | Сервис             | Endpoint                                       | Описание                            |
 | ------------------ | ---------------------------------------------- | ----------------------------------- |
 | **Frontend**       | `http://<nlb_external_ip>/app`                 | Веб-интерфейс приложения            |
@@ -466,9 +472,10 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 
 | Сервис         | Endpoint                        | Порт (NodePort) | Описание                                                  |
 | -------------- | ------------------------------- | --------------- | --------------------------------------------------------- |
-| **Prometheus** | `http://<nlb_external_ip>:9090` | 32090           | Сбор и хранение метрик                                    |
-| **Grafana**    | `http://<nlb_external_ip>:3000` | 32300           | Визуализация метрик и дашборды (по умолчанию admin/admin) |
-| **Loki**       | `http://<nlb_external_ip>:3100` | 32310           | Сбор и хранение логов                                     |
+| **Prometheus**     | `http://<nlb_external_ip>:9090` | 32090           | Сбор и хранение метрик                                    |
+| **Grafana**        | `http://<nlb_external_ip>:3000` | 32300           | Визуализация метрик и дашборды (по умолчанию admin/admin) |
+| **Loki**           | `http://<nlb_external_ip>:3100` | 32310           | Сбор и хранение логов                                     |
+| **Alertmanager**   | `http://<nlb_external_ip>:9093` | 32093           | Приём алертов от Prometheus, маршрутизация (Slack, email); настройка в values или docs/runbook.md |
 
 **Примечание**: Сервисы мониторинга доступны напрямую через NodePort, так как они не проходят через ingress-nginx (можно было бы через ingress, но так проще было сделать).
 
@@ -539,7 +546,33 @@ backend:
 | Мониторинг  | Prometheus      | `http://<nlb_external_ip>:9090` (NodePort 32090) |
 | Мониторинг  | Grafana         | `http://<nlb_external_ip>:3000` (NodePort 32300) |
 | Мониторинг  | Loki            | `http://<nlb_external_ip>:3100` (NodePort 32310) |
+| Мониторинг  | Alertmanager    | `http://<nlb_external_ip>:9093` (NodePort 32093) |
 | GitOps      | ArgoCD UI       | `http://<nlb_external_ip>:8080` (NodePort 32080) |
+
+### Makefile
+
+В корне репозитория есть [Makefile](Makefile) с типовыми командами (секреты и переменные задаются отдельно через `terraform.tfvars` или переменные окружения).
+
+| Цель | Описание |
+|------|----------|
+| `make help` | Список всех целей |
+| `make terraform-init` | Инициализация Terraform в `terraform/` |
+| `make terraform-plan` | План изменений инфраструктуры |
+| `make terraform-apply` | Применение изменений Terraform |
+| `make helm-lint` | Проверка всех Helm-чартов (`helm lint`) |
+| `make helm-package-app` | Локальная упаковка чарта app |
+| `make helm-package-monitoring` | Локальная упаковка чарта monitoring |
+| `make helm-package-data-services` | Локальная упаковка чарта data-services |
+| `make helm-package-external-secrets` | Локальная упаковка чарта external-secrets-config |
+| `make kubectl-apply-namespaces` | Применить манифесты namespace (dev, staging, production) |
+
+Примеры:
+
+```bash
+make terraform-init
+make helm-lint
+make kubectl-apply-namespaces
+```
 
 ### Kubernetes ресурсы (namespace'ы)
 
@@ -549,7 +582,7 @@ backend:
 | `dev`                | app, data-services (при использовании)   | Окружение разработки             |
 | `staging`            | app, data-services                       | Предпрод                          |
 | `production`         | app, data-services                       | Прод                              |
-| `monitoring`         | Prometheus, Grafana, Loki, Promtail      | Стек мониторинга                 |
+| `monitoring`         | Prometheus, Grafana, Loki, Promtail, Alertmanager | Стек мониторинга                 |
 | `argocd`             | ArgoCD компоненты                        | GitOps контроллер                |
 | `external-secrets`   | External Secrets Operator, конфиг        | Синхронизация секретов из Lockbox |
 | `backup`             | CronJob дампа PostgreSQL (опционально)   | Бэкапы в S3                      |
@@ -557,6 +590,8 @@ backend:
 | `local-path-storage` | local-path-provisioner                   | Динамическое хранилище           |
 
 ### Устранение неполадок
+
+Подробные пошаговые сценарии и команды — в [docs/runbook.md](docs/runbook.md). Кратко:
 
 - **Поды приложения в состоянии ImagePullBackOff**  
   Убедитесь, что в namespace развёрнут секрет `docker-config-secret` типа `kubernetes.io/dockerconfigjson` и что логин/пароль (или токен) Registry верные. Для мульти-окружений секрет должен быть в каждом namespace (`dev`, `staging`, `production`).
@@ -580,5 +615,6 @@ backend:
 | [docs/multi-env.md](docs/multi-env.md) | Мульти-окружения: namespace, values по env, ArgoCD, порядок деплоя. |
 | [docs/secrets.md](docs/secrets.md) | Управление секретами: Lockbox, ESO, добавление ключей, подключение backend. |
 | [docs/backup.md](docs/backup.md) | Стратегия бэкапов, CronJob PostgreSQL → S3, восстановление из дампа. |
+| [docs/runbook.md](docs/runbook.md) | Runbook: типовые инциденты (ImagePullBackOff, БД, ESO, ArgoCD), команды и проверки. |
 
 Дополнительно в репозитории: примеры манифестов в [kubernetes/](kubernetes/), примеры ArgoCD Application в [argocd/applications/](argocd/applications/).

@@ -1,0 +1,27 @@
+# Alertmanager: приём алертов от Prometheus и маршрутизация (Slack, email и т.д.)
+# Документация: https://prometheus.io/docs/alerting/latest/alertmanager/
+
+enabled: true
+
+image:
+  repository: quay.io/prometheus/alertmanager
+  tag: "v0.26.0"
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+service:
+  type: NodePort
+  port: 9093
+  nodePort: 32093
+
+# Полная конфигурация Alertmanager (global, route, receivers). Если не задано — используется минимальный default.
+# Для Slack/email задайте configOverride в parent chart (monitoring-chart/values.yaml: alertmanager.configOverride).
+# Пример: https://prometheus.io/docs/alerting/latest/configuration/
+configOverride: null

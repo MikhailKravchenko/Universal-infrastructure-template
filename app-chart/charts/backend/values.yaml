@@ -6,6 +6,19 @@ image:
 
 replicaCount: 1
 
+# HorizontalPodAutoscaler: масштабирование по CPU (и опционально по памяти)
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# PodDisruptionBudget: минимум доступных подов при обновлениях узлов (создаётся только при replicaCount > 1)
+pdb:
+  enabled: false
+  minAvailable: 1   # число или строка, например "50%"
+
 resources:
   requests:
     cpu: 100m

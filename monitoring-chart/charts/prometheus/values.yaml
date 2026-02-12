@@ -20,6 +20,9 @@ service:
 scrapeInterval: 10s
 scrapeTimeout: 10s
 
+# URL Alertmanager для отправки алертов (например http://alertmanager:9093)
+alertmanagerUrl: ""
+
 # Yandex Cloud сервисы (если нужны)
 yandex_cloud_services: []
 

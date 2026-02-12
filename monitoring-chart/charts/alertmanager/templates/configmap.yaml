@@ -1,0 +1,26 @@
+{{- if .Values.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-conf
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: alertmanager
+data:
+  alertmanager.yml: |
+    {{- if .Values.configOverride }}
+    {{- toYaml .Values.configOverride | nindent 4 }}
+    {{- else }}
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ['alertname']
+      receiver: 'default'
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 12h
+    receivers:
+      - name: 'default'
+    {{- end }}
+{{- end }}

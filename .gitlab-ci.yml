@@ -1,6 +1,35 @@
 stages:
+  - validate
   - release
   - deploy
+
+# Проверка Helm-чартов перед публикацией: dependency update, lint, template
+lint-helm:
+  stage: validate
+  image: alpine/helm:latest
+  only:
+    changes:
+      - "app-chart/**/*"
+      - "monitoring-chart/**/*"
+      - "data-services-chart/**/*"
+      - "external-secrets-chart/**/*"
+  script:
+    - |
+      lint_chart() {
+        echo "=== Lint $1 ==="
+        cd "$1"
+        if [ -f Chart.yaml ]; then
+          helm dependency update 2>/dev/null || true
+          helm lint .
+          helm template test . --namespace test > /dev/null
+        fi
+        cd -
+      }
+    - lint_chart app-chart
+    - helm repo add bitnami https://charts.bitnami.com/bitnami
+    - lint_chart monitoring-chart
+    - lint_chart data-services-chart
+    - lint_chart external-secrets-chart
 
 release-helm:
   stage: release

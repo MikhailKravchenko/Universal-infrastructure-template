@@ -1,0 +1,29 @@
+# Пример переменных Terraform для развертывания в Yandex.Cloud.
+# Скопируйте этот файл в terraform.tfvars и заполните реальными значениями.
+# Файл terraform.tfvars не коммитится в Git (.gitignore).
+
+# Обязательные: идентификаторы облака и каталога (из консоли Yandex.Cloud)
+cloud_id  = "your-cloud-id"
+folder_id = "your-folder-id"
+
+# Зона доступности (ru-central1-a, ru-central1-b или ru-central1-d)
+zone = "ru-central1-a"
+
+# ID образа ВМ (например, Ubuntu 22.04 из каталога Yandex.Cloud)
+image_id = "your-image-id"
+
+# Платформа (standard-v1, standard-v2 или standard-v3)
+platform_id = "standard-v2"
+
+# Пользователь для SSH и Ansible (по умолчанию ubuntu)
+# ssh_user = "ubuntu"
+
+# Токен RKE2 для кластера (сгенерируйте: openssl rand -hex 32)
+rke2_token = "your-generated-rke2-token"
+
+# Опционально: S3-бакет для приложения и/или бэкапов
+# create_storage_bucket = false
+# storage_bucket_name   = ""
+
+# Опционально: создать секрет в Lockbox с плейсхолдерами для ESO
+# lockbox_create_placeholder = false

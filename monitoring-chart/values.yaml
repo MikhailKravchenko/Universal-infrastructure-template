@@ -2,8 +2,14 @@
 global:
   namespace: monitoring
 
+# Alertmanager: приём алертов от Prometheus. Настройка Slack/email — в alertmanager.config или в docs/runbook.md
+alertmanager:
+  enabled: true
+  configOverride: null  # при необходимости задайте full config (global, route, receivers) для Slack/email
+
 # Prometheus настройки
 prometheus:
+  alertmanagerUrl: "http://alertmanager:9093"  # включить отправку алертов в Alertmanager
   enabled: true
   image:
     repository: prom/prometheus
