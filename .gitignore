@@ -46,3 +46,7 @@ terraform.tfvars.json
 terraform/ansible/inventory.ini
 terraform/ansible/kubeconfig/rke2.yaml
 terraform/tfplan
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
