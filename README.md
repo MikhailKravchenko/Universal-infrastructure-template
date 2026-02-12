@@ -1,5 +1,7 @@
 # Application Infrastructure
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Универсальный репозиторий для развертывания инфраструктуры приложения в Yandex.Cloud с использованием Terraform, Kubernetes (RKE2), ArgoCD и Helm. Поддерживает несколько окружений (dev, staging, production), сервисы данных в кластере (PostgreSQL, Redis, RabbitMQ, Kafka), объектное хранилище S3, управление секретами через Yandex Lockbox и External Secrets Operator, а также стратегию бэкапов.
 
 ## Содержание
@@ -22,6 +24,7 @@
 - [Kubernetes ресурсы](#kubernetes-ресурсы-namespaceы)
 - [Устранение неполадок](#устранение-неполадок)
 - [Дополнительная документация](#дополнительная-документация)
+- [Лицензия](#лицензия)
 
 ## Краткий обзор процесса развертывания
 
@@ -121,8 +124,14 @@ momo-infrastructure/
 │   ├── backup.md             # Стратегия бэкапов, восстановление
 │   └── runbook.md            # Runbook: инциденты (ImagePullBackOff, БД, ESO, ArgoCD)
 ├── Makefile                  # Типовые команды (terraform, helm lint, kubectl)
+├── .editorconfig             # Единый стиль кода (отступы, переносы строк)
+├── .gitignore
 ├── .gitlab-ci.yml            # Публикация чартов в Nexus
-└── README.md
+├── CHANGELOG.md              # История изменений
+├── CONTRIBUTING.md           # Правила участия в разработке
+├── LICENSE                   # Лицензия MIT
+├── README.md
+└── SECURITY.md               # Сообщение об уязвимостях, рекомендации
 ```
 
 ## Компоненты инфраструктуры
@@ -616,5 +625,18 @@ make kubectl-apply-namespaces
 | [docs/secrets.md](docs/secrets.md) | Управление секретами: Lockbox, ESO, добавление ключей, подключение backend. |
 | [docs/backup.md](docs/backup.md) | Стратегия бэкапов, CronJob PostgreSQL → S3, восстановление из дампа. |
 | [docs/runbook.md](docs/runbook.md) | Runbook: типовые инциденты (ImagePullBackOff, БД, ESO, ArgoCD), команды и проверки. |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Как предложить изменения: ветки, MR, проверки перед коммитом. |
+| [SECURITY.md](SECURITY.md) | Сообщение об уязвимостях и рекомендации по безопасному использованию. |
+| [CHANGELOG.md](CHANGELOG.md) | История изменений проекта. |
 
-Дополнительно в репозитории: примеры манифестов в [kubernetes/](kubernetes/), примеры ArgoCD Application в [argocd/applications/](argocd/applications/).
+Дополнительно: примеры манифестов в [kubernetes/](kubernetes/), примеры ArgoCD Application в [argocd/applications/](argocd/applications/).
+
+### Лицензия
+
+Проект распространяется под лицензией **MIT**: репозиторий можно свободно использовать, копировать, изменять и распространять (в том числе в коммерческих целях). В копиях и производных работах необходимо сохранять текст лицензии и указание авторства.
+
+Полный текст лицензии: [LICENSE](LICENSE).
+
+### Лицензия
+
+Репозиторий распространяется под лицензией **MIT**: его можно свободно использовать, копировать, изменять и распространять (в том числе в коммерческих целях) при сохранении текста лицензии и указании авторства. Полный текст — в файле [LICENSE](LICENSE).
