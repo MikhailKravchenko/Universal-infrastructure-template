@@ -40,7 +40,7 @@ write_files:
     owner: root:root
     content: |
       Cloud-init initialization completed
-      System ready for momo-store application deployment
+      System ready for application deployment
 
 # финальное сообщение
 final_message: |

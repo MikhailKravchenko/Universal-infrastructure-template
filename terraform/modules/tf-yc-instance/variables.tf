@@ -1,7 +1,7 @@
 variable "vm_name" {
   description = "Name virtual machine"
   type        = string
-  default     = "momo-store"
+  default     = "app"
 }
 
 variable "instance_count" {

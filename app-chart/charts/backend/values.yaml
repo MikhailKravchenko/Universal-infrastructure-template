@@ -1,0 +1,75 @@
+# бэкенд настройки
+image:
+  repository: your-registry.example.com/your-group/app-backend
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+service:
+  type: ClusterIP
+  port: 8081
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  useRegex: true
+  path: "/api(/|$)(.*)"
+  pathType: "ImplementationSpecific"
+  rewriteTarget: "/$2"
+  tls:
+    enabled: false
+
+probes:
+  livenessProbe:
+    httpGet:
+      path: /metrics
+      port: 8081
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readinessProbe:
+    httpGet:
+      path: /metrics
+      port: 8081
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+environment: production
+
+# Подключение к сервисам данных (хосты задаются в values; пароли — в Secret, см. env.secretName)
+env:
+  # Секрет с паролями (создаётся External Secrets или вручную). Ключи: SPRING_DATASOURCE_USERNAME, SPRING_DATASOURCE_PASSWORD,
+  # SPRING_RABBITMQ_USERNAME, SPRING_RABBITMQ_PASSWORD, SPRING_DATA_REDIS_PASSWORD, S3_ACCESS_KEY, S3_SECRET_KEY (при необходимости).
+  secretName: ""   # например backend-secrets
+  # ConfigMap с несекретными переменными (создаётся чартом, если задан configMapName)
+  configMapName: ""   # например backend-config; если пусто, используются только env.dataServices ниже
+  dataServices:
+    postgresqlHost: postgresql
+    postgresqlPort: "5432"
+    postgresqlDatabase: app_store
+    rabbitmqHost: rabbitmq
+    rabbitmqPort: "5672"
+    kafkaBootstrapServers: kafka:9092
+    redisHost: redis-master
+    redisPort: "6379"
+    s3Endpoint: ""   # например https://storage.yandexcloud.net
+    s3Bucket: ""     # имя бакета
+    s3Region: ""     # ru-central1
+
+imagePullSecrets:
+  - name: docker-config-secret

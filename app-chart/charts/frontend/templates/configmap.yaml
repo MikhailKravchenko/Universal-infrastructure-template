@@ -1,22 +1,24 @@
----
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: frontend
+  name: {{ .Release.Name }}-frontend
+  namespace: {{ .Release.Namespace }}
   labels:
     app.kubernetes.io/name: app-frontend
-    app.kubernetes.io/instance: app
-    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/instance: "{{ .Release.Name }}"
+    app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
+    app.kubernetes.io/managed-by: "{{ .Release.Service }}"
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     app.kubernetes.io/component: frontend
     app.kubernetes.io/part-of: app
-    env: "production"
+    env: "{{ .Values.environment }}"
 data:
   nginx.conf: |
     server {
-      listen 80;
+      listen {{ .Values.configMap.nginx.server.listen }};
       server_name _;
-      root /usr/share/nginx/html;
-      index index.html;
+      root {{ .Values.configMap.nginx.server.location.root }};
+      index {{ .Values.configMap.nginx.server.location.index }};
       
       # gzip сжатие
       gzip on;
@@ -25,9 +27,8 @@ data:
       gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/json;
       
       # статические файлы фронтенда
-      # API идет через ingress на бэкенд
       location / {
-        try_files $uri $uri/ /index.html;
+        try_files {{ .Values.configMap.nginx.server.location.tryFiles }};
       }
 
       # кеш для ассетов

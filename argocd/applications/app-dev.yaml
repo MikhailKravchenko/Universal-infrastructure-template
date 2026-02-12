@@ -1,0 +1,28 @@
+# Пример ArgoCD Application для приложения (app) в окружении dev.
+# Репозиторий Helm (nexus-helm-repo) должен быть предварительно добавлен в ArgoCD.
+# Подставьте NEXUS_HELM_REPO вместо repoURL. Для полных values используйте values из Git (см. docs/multi-env.md).
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-dev
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: "https://nexus.example.com/repository/helm-hosted/"
+    chart: app
+    targetRevision: "0.1.3"
+    helm:
+      parameters:
+        - name: environment
+          value: dev
+        - name: backend.replicaCount
+          value: "1"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

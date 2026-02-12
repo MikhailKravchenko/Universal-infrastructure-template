@@ -1,0 +1,94 @@
+# Data services — общие значения (переопределяются values-{env}.yaml)
+# Имена сервисов в кластере: postgresql, redis-master (redis), rabbitmq, kafka
+
+# PostgreSQL (Bitnami)
+postgresql:
+  fullnameOverride: postgresql
+  auth:
+    enablePostgresUser: true
+    postgresPassword: ""   # задать через ExternalSecret или values-{env}
+    database: app_store
+  primary:
+    persistence:
+      enabled: true
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+
+# Redis (Bitnami)
+redis:
+  fullnameOverride: redis
+  architecture: standalone
+  auth:
+    enabled: true
+    password: ""   # задать через ExternalSecret или values-{env}
+  master:
+    persistence:
+      enabled: true
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+
+# RabbitMQ (Bitnami)
+rabbitmq:
+  fullnameOverride: rabbitmq
+  auth:
+    username: user
+    password: ""   # задать через ExternalSecret или values-{env}
+    erlangCookie: ""  # задать через ExternalSecret или values-{env}
+  persistence:
+    enabled: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+
+# Kafka (Bitnami)
+kafka:
+  fullnameOverride: kafka
+  persistence:
+    enabled: true
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  metrics:
+    kafka:
+      enabled: true
+    jmx:
+      enabled: false
+  serviceMonitor:
+    enabled: false
+  # Имя сервиса для bootstrap: kafka (release name по умолчанию)
+  listeners:
+    client:
+      protocol: PLAINTEXT
+    controller:
+      protocol: PLAINTEXT

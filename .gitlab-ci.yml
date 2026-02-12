@@ -7,12 +7,12 @@ release-helm:
   image: alpine/helm:latest
   only:
     changes:
-      - "momo-store-chart/**/*"
+      - "app-chart/**/*"
   script:
-    - cd momo-store-chart
+    - cd app-chart
     - helm dependency update
     - helm package . --version "0.1.3-pipeline${CI_PIPELINE_ID}"
-    - curl -L -u $HELM_REPO_USERNAME:$HELM_REPO_PASSWORD $NEXUS_HELM_REPO --upload-file momo-store-*.tgz
+    - curl -L -u $HELM_REPO_USERNAME:$HELM_REPO_PASSWORD $NEXUS_HELM_REPO --upload-file app-*.tgz
 
 release-monitoring-helm:
   stage: release
@@ -25,3 +25,29 @@ release-monitoring-helm:
     - helm dependency update
     - helm package . --version "0.1.0-pipeline${CI_PIPELINE_ID}"
     - curl -L -u $HELM_REPO_USERNAME:$HELM_REPO_PASSWORD $NEXUS_HELM_MONITORING_REPO --upload-file monitoring-*.tgz
+
+# Публикация чарта data-services (PostgreSQL, Redis, RabbitMQ, Kafka). Переменная NEXUS_HELM_DATA_SERVICES_REPO — URL репозитория в Nexus.
+release-data-services-helm:
+  stage: release
+  image: alpine/helm:latest
+  only:
+    changes:
+      - "data-services-chart/**/*"
+  script:
+    - helm repo add bitnami https://charts.bitnami.com/bitnami
+    - cd data-services-chart
+    - helm dependency update
+    - helm package . --version "0.1.0-pipeline${CI_PIPELINE_ID}"
+    - curl -L -u $HELM_REPO_USERNAME:$HELM_REPO_PASSWORD ${NEXUS_HELM_DATA_SERVICES_REPO:-$NEXUS_HELM_REPO} --upload-file data-services-*.tgz
+
+# Публикация чарта конфигурации External Secrets (SecretStore, ExternalSecret для Lockbox)
+release-external-secrets-helm:
+  stage: release
+  image: alpine/helm:latest
+  only:
+    changes:
+      - "external-secrets-chart/**/*"
+  script:
+    - cd external-secrets-chart
+    - helm package . --version "0.1.0-pipeline${CI_PIPELINE_ID}"
+    - curl -L -u $HELM_REPO_USERNAME:$HELM_REPO_PASSWORD ${NEXUS_HELM_EXTERNAL_SECRETS_REPO:-$NEXUS_HELM_REPO} --upload-file external-secrets-config-*.tgz

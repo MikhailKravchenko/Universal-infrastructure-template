@@ -1,0 +1,26 @@
+{{- if .Values.env.configMapName }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.env.configMapName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: app-backend
+    app.kubernetes.io/instance: "{{ .Release.Name }}"
+data:
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://{{ .Values.env.dataServices.postgresqlHost }}:{{ .Values.env.dataServices.postgresqlPort }}/{{ .Values.env.dataServices.postgresqlDatabase }}"
+  SPRING_RABBITMQ_HOST: "{{ .Values.env.dataServices.rabbitmqHost }}"
+  SPRING_RABBITMQ_PORT: "{{ .Values.env.dataServices.rabbitmqPort }}"
+  KAFKA_BOOTSTRAP_SERVERS: "{{ .Values.env.dataServices.kafkaBootstrapServers }}"
+  SPRING_DATA_REDIS_HOST: "{{ .Values.env.dataServices.redisHost }}"
+  SPRING_DATA_REDIS_PORT: "{{ .Values.env.dataServices.redisPort }}"
+  {{- if .Values.env.dataServices.s3Endpoint }}
+  S3_ENDPOINT: "{{ .Values.env.dataServices.s3Endpoint }}"
+  {{- end }}
+  {{- if .Values.env.dataServices.s3Bucket }}
+  S3_BUCKET: "{{ .Values.env.dataServices.s3Bucket }}"
+  {{- end }}
+  {{- if .Values.env.dataServices.s3Region }}
+  S3_REGION: "{{ .Values.env.dataServices.s3Region }}"
+  {{- end }}
+{{- end }}

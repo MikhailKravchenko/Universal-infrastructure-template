@@ -4,11 +4,11 @@ kind: Ingress
 metadata:
   name: frontend
   labels:
-    app.kubernetes.io/name: momo-frontend
-    app.kubernetes.io/instance: momo-store
+    app.kubernetes.io/name: app-frontend
+    app.kubernetes.io/instance: app
     app.kubernetes.io/version: "latest"
     app.kubernetes.io/component: frontend
-    app.kubernetes.io/part-of: momo-store
+    app.kubernetes.io/part-of: app
     env: "production"
   annotations:
     nginx.ingress.kubernetes.io/use-regex: "true"
@@ -18,7 +18,7 @@ spec:
   rules:
     - http:
         paths:
-          - path: /momo-store(/|$)(.*)
+          - path: /app(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
               service:

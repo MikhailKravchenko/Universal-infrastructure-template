@@ -53,3 +53,23 @@ variable "rke2_token" {
   nullable    = false
 }
 
+# Object Storage (S3-совместимое)
+variable "storage_bucket_name" {
+  type        = string
+  description = "Name of Yandex Object Storage bucket (for app files and/or backups)"
+  default     = ""
+}
+
+variable "create_storage_bucket" {
+  type        = bool
+  description = "Create S3 bucket and service account with static key"
+  default     = false
+}
+
+# Lockbox (секреты для ESO)
+variable "lockbox_create_placeholder" {
+  type        = bool
+  description = "Create a placeholder Lockbox secret for backend (fill payload manually or via CLI)"
+  default     = false
+}
+

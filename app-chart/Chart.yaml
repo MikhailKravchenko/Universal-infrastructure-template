@@ -1,0 +1,14 @@
+apiVersion: v2
+type: application
+name: app
+description: Application Helm Chart (frontend + backend)
+
+version: 0.1.2
+appVersion: "latest"
+
+dependencies:
+  - name: backend
+    version: 0.1.2
+  - name: frontend
+    version: 0.1.2
+

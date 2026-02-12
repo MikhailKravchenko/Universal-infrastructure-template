@@ -16,7 +16,7 @@ terraform {
 
   backend "s3" {
     endpoint = "storage.yandexcloud.net"
-    bucket   = "terraform-state-momo-store-21-21"
+    bucket   = "terraform-state-your-project"  # замените на имя вашего бакета в Object Storage
     region   = "ru-central1"
     key      = "terraform.tfstate"
 

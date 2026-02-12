@@ -1,0 +1,22 @@
+# Конфигурация для подключения External Secrets Operator к Yandex Lockbox.
+# Перед установкой: установите ESO (helm install external-secrets external-secrets/external-secrets -n external-secrets --create-namespace)
+# и создайте Secret с авторизованным ключом Yandex Cloud (см. docs/secrets.md).
+
+# Имя секрета в K8s с ключом авторизации Yandex (authorized-key.json)
+ycAuthSecretName: yc-lockbox-auth
+ycAuthSecretKey: authorized-key
+
+# ID секрета в Lockbox (из terraform output lockbox_secret_id или из консоли Yandex)
+lockboxSecretId: ""
+
+# В какие namespace синхронизировать backend-secrets (список)
+targetNamespaces:
+  - dev
+  - staging
+  - production
+
+# Имя создаваемого K8s Secret в каждом namespace
+backendSecretName: backend-secrets
+
+# Интервал обновления секрета из Lockbox
+refreshInterval: 1h

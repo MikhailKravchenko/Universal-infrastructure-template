@@ -49,3 +49,27 @@ output "nlb_external_ip" {
     ]
   ])[0]
 }
+
+# Object Storage (если create_storage_bucket = true)
+output "storage_bucket_name" {
+  description = "Name of created S3 bucket"
+  value       = var.create_storage_bucket && var.storage_bucket_name != "" ? yandex_storage_bucket.app_bucket[0].bucket : null
+}
+
+output "storage_s3_access_key" {
+  description = "S3 access key — сохраните в Lockbox (S3_ACCESS_KEY)"
+  value       = var.create_storage_bucket && var.storage_bucket_name != "" ? yandex_iam_service_account_static_access_key.storage_sa_key[0].access_key : null
+  sensitive   = true
+}
+
+output "storage_s3_secret_key" {
+  description = "S3 secret key — сохраните в Lockbox (S3_SECRET_KEY)"
+  value       = var.create_storage_bucket && var.storage_bucket_name != "" ? yandex_iam_service_account_static_access_key.storage_sa_key[0].secret_key : null
+  sensitive   = true
+}
+
+# Lockbox (если lockbox_create_placeholder = true)
+output "lockbox_secret_id" {
+  description = "ID секрета Lockbox для настройки External Secrets Operator"
+  value       = var.lockbox_create_placeholder ? yandex_lockbox_secret.backend_secrets[0].id : null
+}

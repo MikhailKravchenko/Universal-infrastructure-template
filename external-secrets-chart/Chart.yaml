@@ -1,0 +1,7 @@
+apiVersion: v2
+type: application
+name: external-secrets-config
+description: SecretStore и ExternalSecret для Yandex Lockbox (ESO устанавливается отдельно)
+
+version: 0.1.0
+appVersion: "latest"
