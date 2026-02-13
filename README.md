@@ -73,7 +73,7 @@
 ## Структура репозитория
 
 ```
-momo-infrastructure/
+app-infrastructure/
 ├── terraform/                 # Инфраструктура в Yandex.Cloud
 │   ├── main.tf                # ВМ, сеть, NLB, Ansible
 │   ├── lockbox.tf             # Секрет Lockbox (опционально)
