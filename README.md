@@ -22,6 +22,7 @@
 - [Сводка эндпоинтов](#сводка-эндпоинтов)
 - [Makefile](#makefile)
 - [Kubernetes ресурсы](#kubernetes-ресурсы-namespaceы)
+- [Масштабирование кластера (добавление и удаление нод)](#масштабирование-кластера-добавление-и-удаление-нод)
 - [Устранение неполадок](#устранение-неполадок)
 - [Дополнительная документация](#дополнительная-документация)
 - [Лицензия](#лицензия)
@@ -597,6 +598,95 @@ make kubectl-apply-namespaces
 | `backup`             | CronJob дампа PostgreSQL (опционально)   | Бэкапы в S3                      |
 | `kube-system`        | RKE2, ingress-nginx                      | Системные сервисы                |
 | `local-path-storage` | local-path-provisioner                   | Динамическое хранилище           |
+
+### Масштабирование кластера (добавление и удаление нод)
+
+Кластер RKE2 по умолчанию развёрнут на **трёх нодах** (три ВМ в модуле `vm_instance` в [terraform/main.tf](terraform/main.tf)): первая нода — RKE2 server (primary), остальные — RKE2 agent. При нехватке ресурсов кластер можно расширить, добавив машины; при необходимости — безопасно убрать ноду. Target group Network Load Balancer и Ansible-инвентарь привязаны к списку нод и обновляются автоматически при изменении `instance_count`.
+
+#### Добавление ноды
+
+При увеличении `instance_count` Terraform создаёт только новые ВМ (существующие не пересоздаются), поэтому текущие ноды не затрагиваются.
+
+1. **Увеличить число нод в Terraform**  
+   В [terraform/main.tf](terraform/main.tf) в блоке `module "vm_instance"` изменить параметр `instance_count` (например с `3` на `4`):
+
+   ```hcl
+   module "vm_instance" {
+     source         = "./modules/tf-yc-instance"
+     # ...
+     instance_count = 4   # было 3
+     # ...
+   }
+   ```
+
+2. **Применить изменения**  
+   Выполнить план и применение (из каталога с Terraform или через Makefile):
+
+   ```bash
+   cd terraform
+   terraform plan   # убедиться, что создаётся только новая ВМ и обновляется inventory
+   terraform apply
+   ```
+
+   После `apply` появится новая ВМ, обновится файл [terraform/ansible/inventory.ini](terraform/ansible/inventory.ini) (в группе `rke2` будет четыре хоста), а внутренний IP новой ноды автоматически попадёт в target group NLB.
+
+3. **Установить RKE2 на новой ноде**  
+   Плейбук [terraform/ansible/rke2-install.yml](terraform/ansible/rke2-install.yml) идемпотентный: на уже работающих нодах установка пропускается (`creates: /usr/local/bin/rke2` / `rke2-agent`), на новой — ставится RKE2 agent и выполняется join к кластеру. Запустить плейбук по всем хостам (токен взять из `terraform.tfvars` или переменных окружения):
+
+   ```bash
+   cd terraform
+   ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook \
+     -i ansible/inventory.ini \
+     ansible/rke2-install.yml \
+     --extra-vars "rke2_token=<ваш_rke2_token>"
+   ```
+
+   При необходимости можно ограничить выполнение только новой нодой, например: `--limit node-4`.
+
+4. **Проверить**  
+   С bastion или с машины, где настроен доступ к кластеру:
+
+   ```bash
+   kubectl get nodes
+   ```
+
+   Новая нода должна появиться в списке и перейти в состояние `Ready`.
+
+#### Удаление ноды
+
+При уменьшении `instance_count` Terraform **удаляет одну ВМ — с наибольшим индексом** (например при переходе с 4 на 3 будет удалена четвёртая нода). Чтобы не потерять поды и не нарушить работу приложений, ноду нужно сначала корректно вывести из кластера (drain), затем уменьшить `instance_count` и применить Terraform.
+
+1. **Определить, какую ноду убирать**  
+   При уменьшении `instance_count` Terraform всегда удаляет последнюю по индексу ВМ (добавленную последней). Убедитесь, что это та нода, которую вы хотите вывести из кластера. Список нод:
+
+   ```bash
+   kubectl get nodes
+   ```
+
+2. **Запретить планирование подов и эвакуировать ноду**  
+   Выполнить с bastion или с машины, где настроен `kubeconfig`:
+
+   ```bash
+   # Заменить <имя-ноды> на имя ноды из kubectl get nodes (например node-4)
+   kubectl cordon <имя-ноды>
+   kubectl drain <имя-ноды> --ignore-daemonsets --delete-emptydir-data
+   ```
+
+   После `drain` поды с этой ноды переедут на другие ноды. При необходимости ноду можно удалить из API кластера: `kubectl delete node <имя-ноды>` (опционально — после уничтожения ВМ она исчезнет из списка сама).
+
+3. **Уменьшить число нод в Terraform**  
+   В [terraform/main.tf](terraform/main.tf) в блоке `module "vm_instance"` вернуть или задать нужное значение `instance_count` (например с `4` на `3`).
+
+4. **Применить изменения**  
+   ```bash
+   cd terraform
+   terraform plan   # убедиться, что destroy только одной ВМ
+   terraform apply
+   ```
+
+   После `apply` одна ВМ будет удалена, инвентарь Ansible и target group NLB обновятся автоматически.
+
+**Важно:** не уменьшайте число нод без предварительного `drain` — иначе поды на удаляемой ноде перейдут в состояние Terminating/Unknown и возможны сбои. Не удаляйте первую ноду (primary RKE2 server), если не настроено HA для control plane — при текущей схеме Terraform при уменьшении count убирает последнюю ноду по индексу, то есть не primary.
 
 ### Устранение неполадок
 
